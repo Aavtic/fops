@@ -1,0 +1,6 @@
+__pycache__/
+*.py[codz]
+*$py.class
+
+__temp_code/
+__temp_output/
