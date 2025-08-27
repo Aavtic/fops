@@ -12,7 +12,11 @@ func Run() {
 	log.Println("[+] Server up and running...")
 	env_vars := env.LoadEnv()
 
-	logging.LogAll(env_vars.Code_storage, env_vars.Output_details, env_vars.Code_templates)
+	logging.LogAll(
+		"Code storage: "+env_vars.Code_storage,
+		"Output details: " + env_vars.Output_details,
+		"Code templates: " + env_vars.Code_templates,
+	)
 
 	// Temp
 

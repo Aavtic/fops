@@ -1,4 +1,4 @@
 {
-    "code_storage": "./backend/code_execution/__temp_code",
+    "code_storage": "../../backend/code_execution/__temp_code",
     "output_details": "./backend/code_execution/__temp_output"
 }

@@ -4,8 +4,8 @@ import (
 	"log"
 )
 
-func LogAll(logMsgs... string) {
-	for msg := range logMsgs {
+func LogAll(logMsgs ...string) {
+	for _, msg := range logMsgs {
 		log.Println(msg)
 	}
 }

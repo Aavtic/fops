@@ -26,6 +26,7 @@ this should be passed as json to the stdin of the `judge.py` process.
 
 Example:
 {
+    id: "unique-id",
     title: "Fibonacci",
     description: "Fibo!",
     function_name: "fibonacci"
@@ -64,10 +65,10 @@ This means there can be multiple input to a program and also multiple output to 
 
 call the judge. pass the following arguments
 
-`--source`: Python source file
-This is the python source file which contains code to be tested
-All the test files will contain a similar class or function which is the starting point for execution.
-which in this case is `Solution`.
+<!-- `--source`: Python source file -->
+<!-- This is the python source file which contains code to be tested -->
+<!-- All the test files will contain a similar class or function which is the starting point for execution. -->
+<!-- which in this case is `Solution`. -->
 
 Example code file:
 ```python
