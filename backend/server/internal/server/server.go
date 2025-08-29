@@ -1,14 +1,55 @@
 package server
 
 import (
+	"fmt"
 	"log"
+	"net/http"
+
 	"github.com/aavtic/fops/internal/env"
 	"github.com/aavtic/fops/internal/launcher/python-launcher"
 	"github.com/aavtic/fops/utils/fs"
 	"github.com/aavtic/fops/utils/logging"
+	"github.com/aavtic/fops/internal/database"
+
+	"github.com/gin-gonic/gin"
 )
 
+var PORT int = 8080
+
+// TODO:
+// making this global is not a good idea
+// create a rw lock on this so that it is thread safe
+var db = database.Connect("mongodb://localhost:27017/");
+
+func SetupRouter() *gin.Engine {
+	r := gin.Default()
+	
+	r.POST("/api/db/add_question", func(c *gin.Context) {
+		var json AddProblemRequestType
+		if c.Bind(&json) == nil {
+			log.Printf("Got json: %v", json)
+			err := db.InsertOne("fops", "problems", json)
+			if err != nil {
+				log.Printf("error while inserting document to database: %v", err)
+				c.JSON(http.StatusOK, gin.H{"status": "error"})
+			} else {
+				log.Println("Successfully inserted document to database")
+				c.JSON(http.StatusOK, gin.H{"status": "ok"})
+			}
+		}
+	})
+
+	return r
+}
+
 func Run() {
+	r := SetupRouter()
+
+	log.Printf("Server up and running on port :%d", PORT)
+	r.Run(":" + fmt.Sprintf("%d", PORT))
+}
+
+func Run2() {
 	log.Println("[+] Server up and running...")
 	env_vars := env.LoadEnv()
 

@@ -12,11 +12,17 @@ export async function POST(request: Request) {
                 body: JSON.stringify(json)
             }
         );
-        console.log(await response.text())
+        const response_json = await response.json()
 
-        return NextResponse.json({
-            status: "success",
-        })
+        if (response_json.status == "ok") {
+            return NextResponse.json({
+                status: "success",
+            })
+        } else {
+            return NextResponse.json({
+                status: "error",
+            })
+        }
 
     } catch (err) {
         return NextResponse.json({
