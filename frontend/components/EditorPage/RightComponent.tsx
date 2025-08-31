@@ -49,7 +49,7 @@ export default function RightComponent() {
     };
 
     return (
-    <div className="w-1/2 h-screen bg-gray-500 p-5 mb-8 space-y-8">
+    <div className="h-screen bg-gray-500">
         <h1 className="text-4xl">Editor</h1>
         
         <TextArea code={codeContent} setContent={setCodeContent} />
