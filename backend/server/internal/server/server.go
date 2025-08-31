@@ -12,6 +12,7 @@ import (
 	"github.com/aavtic/fops/internal/database"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gosimple/slug"
 )
 
 var PORT int = 8080
@@ -20,6 +21,36 @@ var PORT int = 8080
 // making this global is not a good idea
 // create a rw lock on this so that it is thread safe
 
+	// Title string
+	// TitleSlug string
+	// Description string
+	// FunctionName string
+	// ParameterName string
+	// InputType string
+	// OutputType string
+	// InputOutput []struct {
+	// 	Input string
+	// 	Output string
+	// }
+
+// TODO
+// Ensure that title is unique
+func processJSON(json *AddProblemRequestType) DBAddProblemRequestType {
+	title := json.Title
+	slug_title := slug.Make(title)
+	var db_json DBAddProblemRequestType
+	db_json.Title = json.Title
+	db_json.TitleSlug = slug_title
+	db_json.Description = json.Description
+	db_json.FunctionName = json.FunctionName
+	db_json.ParameterName = json.ParameterName
+	db_json.InputType = json.InputType
+	db_json.OutputType = json.OutputType
+	db_json.InputOutput = json.InputOutput
+
+	return db_json
+}
+
 func SetupRouter(db *database.Database) *gin.Engine {
 	r := gin.Default()
 	
@@ -27,7 +58,8 @@ func SetupRouter(db *database.Database) *gin.Engine {
 		var json AddProblemRequestType
 		if c.Bind(&json) == nil {
 			log.Printf("Got json: %v", json)
-			err := db.InsertOne("fops", "problems", json)
+			db_json := processJSON(&json)
+			err := db.InsertOne("fops", "problems", db_json)
 			if err != nil {
 				log.Printf("error while inserting document to database: %v", err)
 				c.JSON(http.StatusOK, gin.H{"status": "error"})

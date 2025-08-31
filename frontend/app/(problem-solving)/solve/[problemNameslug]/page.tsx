@@ -1,5 +1,7 @@
 import EditorPage from "@/components/EditorPage/EditorPage"
 
+
+
 export default async function ProblemPage({params}: {params: {problemNameslug: string}}) {
 
     const title = "Fibonacci";
