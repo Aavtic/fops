@@ -5,6 +5,7 @@ package server;
 //   "title": "asdf",
 //   "description": "asdf",
 //   "function_name": "asdf",
+//	 "parameter_name": "n",
 //   "input_type": "List[float]",
 //   "output_type": "List[int]",
 //   "input_output": [
@@ -18,6 +19,7 @@ type AddProblemRequestType struct {
 	Title string `json:"title"`
 	Description string `json:"description"`
 	FunctionName string `json:"function_name"`
+	ParameterName string `json:"parameter_name"`
 	InputType string `json:"input_type"`
 	OutputType string `json:"output_type"`
 	InputOutput []struct {

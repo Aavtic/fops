@@ -14,7 +14,7 @@ export async function POST(request: Request) {
         );
         const response_json = await response.json()
 
-        if (response_json.status == "ok") {
+        if (response_json.status == "success") {
             return NextResponse.json({
                 status: "success",
             })

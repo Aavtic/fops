@@ -19,9 +19,8 @@ var PORT int = 8080
 // TODO:
 // making this global is not a good idea
 // create a rw lock on this so that it is thread safe
-var db = database.Connect("mongodb://localhost:27017/");
 
-func SetupRouter() *gin.Engine {
+func SetupRouter(db *database.Database) *gin.Engine {
 	r := gin.Default()
 	
 	r.POST("/api/db/add_question", func(c *gin.Context) {
@@ -34,7 +33,7 @@ func SetupRouter() *gin.Engine {
 				c.JSON(http.StatusOK, gin.H{"status": "error"})
 			} else {
 				log.Println("Successfully inserted document to database")
-				c.JSON(http.StatusOK, gin.H{"status": "ok"})
+				c.JSON(http.StatusOK, gin.H{"status": "success"})
 			}
 		}
 	})
@@ -43,7 +42,9 @@ func SetupRouter() *gin.Engine {
 }
 
 func Run() {
-	r := SetupRouter()
+	db := database.Connect("mongodb://localhost:27017/");
+	defer db.Disconnect()
+	r := SetupRouter(db)
 
 	log.Printf("Server up and running on port :%d", PORT)
 	r.Run(":" + fmt.Sprintf("%d", PORT))
