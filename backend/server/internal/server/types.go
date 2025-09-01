@@ -29,13 +29,13 @@ type AddProblemRequestType struct {
 }
 
 type DBAddProblemRequestType struct {
-	Title string
-	TitleSlug string
-	Description string
-	FunctionName string
-	ParameterName string
-	InputType string
-	OutputType string
+	Title string `json:"title"`
+	TitleSlug string `json:"titleSlug"`
+	Description string `json:"description"`
+	FunctionName string `json:"function_name"`
+	ParameterName string `json:"parameter_name"`
+	InputType string `json:"input_type"`
+	OutputType string `json:"output_type"`
 	InputOutput []struct {
 		Input string `json:"input"`
 		Output string `json:"output"`

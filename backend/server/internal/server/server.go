@@ -16,22 +16,8 @@ import (
 )
 
 var PORT int = 8080
-
-// TODO:
-// making this global is not a good idea
-// create a rw lock on this so that it is thread safe
-
-	// Title string
-	// TitleSlug string
-	// Description string
-	// FunctionName string
-	// ParameterName string
-	// InputType string
-	// OutputType string
-	// InputOutput []struct {
-	// 	Input string
-	// 	Output string
-	// }
+var DATABASE string = "fops"
+var COLLECTION string = "problems"
 
 // TODO
 // Ensure that title is unique
@@ -51,24 +37,60 @@ func processJSON(json *AddProblemRequestType) DBAddProblemRequestType {
 	return db_json
 }
 
+func add_question_handler(db *database.Database) gin.HandlerFunc {
+	return func(c *gin.Context) {
+			var json AddProblemRequestType
+			if c.Bind(&json) == nil {
+				log.Printf("Got json: %v", json)
+				db_json := processJSON(&json)
+				err := db.InsertOne(DATABASE, COLLECTION, db_json)
+				if err != nil {
+					log.Printf("error while inserting document to database: %v", err)
+					c.JSON(http.StatusOK, gin.H{"status": "error"})
+				} else {
+					log.Println("Successfully inserted document to database")
+					c.JSON(http.StatusOK, gin.H{"status": "success"})
+				}
+			}
+	}
+}
+
+func get_question_details_handler(db *database.Database) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		slug_title := c.Params.ByName("title_slug")
+		var db_response DBAddProblemRequestType
+		// TODO: This responds with the whole record. we don't need everything
+		// this returns including the testcases
+		// just return the title, description
+		filter := database.D{{Key: "titleslug", Value: slug_title}}
+		err := database.FindOneDocument(db, DATABASE, COLLECTION, filter, &db_response)
+		if (err != nil) {
+			if (err == database.NO_DOCUMENTS) {
+				c.JSON(http.StatusNotFound, gin.H{"status": "Document not Found"})
+			} else {
+				log.Printf("ERROR: Error in finding document due to: %v", err)
+				c.JSON(http.StatusInternalServerError, gin.H{"status": "Server Error"})
+			}
+			return
+		}
+		type ResponseJson struct {
+			Title string `json:"title"`
+			Description string `json:"description"`
+		}
+		var response ResponseJson
+		response.Title = db_response.Title
+		response.Description = db_response.Description
+
+		log.Printf("Found Document: %v", response)
+		c.JSON(http.StatusOK, response)
+	}
+}
+
 func SetupRouter(db *database.Database) *gin.Engine {
 	r := gin.Default()
-	
-	r.POST("/api/db/add_question", func(c *gin.Context) {
-		var json AddProblemRequestType
-		if c.Bind(&json) == nil {
-			log.Printf("Got json: %v", json)
-			db_json := processJSON(&json)
-			err := db.InsertOne("fops", "problems", db_json)
-			if err != nil {
-				log.Printf("error while inserting document to database: %v", err)
-				c.JSON(http.StatusOK, gin.H{"status": "error"})
-			} else {
-				log.Println("Successfully inserted document to database")
-				c.JSON(http.StatusOK, gin.H{"status": "success"})
-			}
-		}
-	})
+
+	r.GET("/api/db/get_question_details/:title_slug", get_question_details_handler(db))
+	r.POST("/api/db/add_question", add_question_handler(db))
 
 	return r
 }

@@ -5,8 +5,12 @@ import (
 	"context"
 
 	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
+
+type D = bson.D
+var NO_DOCUMENTS = mongo.ErrNoDocuments
 
 type Database struct {
 	connection *mongo.Client
@@ -38,4 +42,12 @@ func (db *Database) Disconnect() {
 	if err := db.connection.Disconnect(context.TODO()); err != nil {
 		panic(err);
 	}
+}
+
+func FindOneDocument[T any](db *Database, database, collection string, filter D, result *T) error {
+	opts := options.FindOne()
+	coll := db.GetCollection(database, collection)
+
+	err := coll.FindOne(context.TODO(), filter, opts).Decode(&result)
+	return err
 }
