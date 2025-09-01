@@ -7,9 +7,17 @@ export default async function ProblemPage({params}: {params: {problemNameslug: s
     var description = ""
 
     if (response.NotFound) {
-        return <h1>Page Not Found</h1>
+        return <>
+                <div className="flex items-center justify-center h-screen">
+                <h1 className="text-red-600">Page Not Found</h1>
+                </div>
+               </>
     } else if (response.ServerError) {
-        return <h1>Oops...Internal Server Error!</h1>
+        return <>
+                <div className="flex items-center justify-center h-screen">
+                <h1 className="text-red-600">Oops...Server Error!</h1>
+                </div>
+               </>
     } else {
         console.log(response.data)
         title = response.data.title
