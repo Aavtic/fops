@@ -10,6 +10,7 @@ import (
 	"github.com/aavtic/fops/utils/fs"
 	"github.com/aavtic/fops/utils/logging"
 	"github.com/aavtic/fops/internal/database"
+	"github.com/aavtic/fops/utils/templates"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gosimple/slug"
@@ -21,10 +22,14 @@ var COLLECTION string = "problems"
 
 // TODO
 // Ensure that title is unique
-func processJSON(json *AddProblemRequestType) DBAddProblemRequestType {
+func processJSON(json database.AddProblemRequestType) database.DBAddProblemRequestType {
 	title := json.Title
 	slug_title := slug.Make(title)
-	var db_json DBAddProblemRequestType
+	// TODO:
+	// Make this language agnostic
+	python_template := templates.GeneratePythonTemplate(json.FunctionName, json.ParameterName, json.InputType, json.OutputType)
+	log.Println("created python template code:", python_template)
+	var db_json database.DBAddProblemRequestType
 	db_json.Title = json.Title
 	db_json.TitleSlug = slug_title
 	db_json.Description = json.Description
@@ -33,16 +38,21 @@ func processJSON(json *AddProblemRequestType) DBAddProblemRequestType {
 	db_json.InputType = json.InputType
 	db_json.OutputType = json.OutputType
 	db_json.InputOutput = json.InputOutput
+	db_json.CodeTemplate = python_template
+
+	log.Println("Function name: ", json.FunctionName)
+	log.Println("Input name: ", json.ParameterName)
+	log.Println("Input Type : ", json.InputType)
 
 	return db_json
 }
 
 func add_question_handler(db *database.Database) gin.HandlerFunc {
 	return func(c *gin.Context) {
-			var json AddProblemRequestType
+			var json database.AddProblemRequestType
 			if c.Bind(&json) == nil {
-				log.Printf("Got json: %v", json)
-				db_json := processJSON(&json)
+				// log.Printf("Got json: %v", json)
+				db_json := processJSON(json)
 				err := db.InsertOne(DATABASE, COLLECTION, db_json)
 				if err != nil {
 					log.Printf("error while inserting document to database: %v", err)
@@ -58,7 +68,7 @@ func add_question_handler(db *database.Database) gin.HandlerFunc {
 func get_question_details_handler(db *database.Database) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		slug_title := c.Params.ByName("title_slug")
-		var db_response DBAddProblemRequestType
+		var db_response database.DBAddProblemRequestType
 		// TODO: This responds with the whole record. we don't need everything
 		// this returns including the testcases
 		// just return the title, description
@@ -76,10 +86,12 @@ func get_question_details_handler(db *database.Database) gin.HandlerFunc {
 		type ResponseJson struct {
 			Title string `json:"title"`
 			Description string `json:"description"`
+			CodeTemplate string `json:"code_template"`
 		}
 		var response ResponseJson
 		response.Title = db_response.Title
 		response.Description = db_response.Description
+		response.CodeTemplate = db_response.CodeTemplate
 
 		log.Printf("Found Document: %v", response)
 		c.JSON(http.StatusOK, response)

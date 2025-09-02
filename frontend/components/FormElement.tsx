@@ -235,8 +235,8 @@ export function InputForm() {
                                                 "String",
                                                 "List[int]",
                                                 "List[float]",
-                                                "List[Boolean]",
-                                                "List[String]",
+                                                "List[bool]",
+                                                "List[str]",
                                             ].map((option) => (
                                                 <SelectItem key={option} value={option}>
                                                     {option}
@@ -276,8 +276,8 @@ export function InputForm() {
                                                 "String",
                                                 "List[int]",
                                                 "List[float]",
-                                                "List[Boolean]",
-                                                "List[String]",
+                                                "List[bool]",
+                                                "List[str]",
                                             ].map((option) => (
                                                 <SelectItem key={option} value={option}>
                                                     {option}

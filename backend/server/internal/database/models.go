@@ -1,5 +1,4 @@
-package server;
-
+package database
 // SAMPLE
 // {
 //   "title": "asdf",
@@ -40,4 +39,5 @@ type DBAddProblemRequestType struct {
 		Input string `json:"input"`
 		Output string `json:"output"`
 	}
+	CodeTemplate string `json:"code_template"`
 }

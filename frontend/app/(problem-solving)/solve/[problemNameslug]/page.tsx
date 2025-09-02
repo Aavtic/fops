@@ -5,6 +5,7 @@ export default async function ProblemPage({params}: {params: {problemNameslug: s
     const response = await getPageData(titleSlug)
     var title = ""
     var description = ""
+    var codeTemplate = ""
 
     if (response.NotFound) {
         return <>
@@ -22,11 +23,12 @@ export default async function ProblemPage({params}: {params: {problemNameslug: s
         console.log(response.data)
         title = response.data.title
         description = response.data.description
+        codeTemplate = response.data.code_template
     }
 
   return (
     <div>
-    <EditorPage title={title} description={description}/>
+    <EditorPage title={title} description={description} codeTemplate={codeTemplate}/>
     </div>
   );
 }
