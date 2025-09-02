@@ -40,17 +40,16 @@ function TextArea(
     )
 }
 
-export default function RightComponent() {
-
-    const [codeContent, setCodeContent] = useState('');
+export default function RightComponent({codeTemplate}: {codeTemplate: string}) {
+    const [codeContent, setCodeContent] = useState(codeTemplate);
 
     const onClickFn = () => {
         console.log(codeContent);
     };
 
     return (
-    <div className="h-screen bg-gray-500">
-        <h1 className="italic  text-4xl">Editor</h1>
+    <div className="h-screen bg-white">
+        <h1 className="italic text-4xl">Editor</h1>
         
         <TextArea code={codeContent} setContent={setCodeContent} />
 

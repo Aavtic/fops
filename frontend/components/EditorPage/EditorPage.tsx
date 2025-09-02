@@ -11,6 +11,7 @@ import {
 type EditorProps = {
     title: string,
     description: string,
+    codeTemplate: string,
 }
 
 {/* <div className="flex"> */}
@@ -18,29 +19,41 @@ type EditorProps = {
 {/* <RightComponent /> */}
 {/* </div> */}
 
-export default function EditorPage({title, description}: EditorProps) {
+export default function EditorPage({title, description, codeTemplate}: EditorProps) {
+    const border_style = "m-2 p-2 rounded-xl border-2 border-cyan-800 overflow-hidden";
     return (
-        <ResizablePanelGroup
-          direction="horizontal"
-          className="w-screen h-screen rounded-lg border"
-        >
-          <ResizablePanel defaultSize={50}>
-          <LeftComponent title={title} description={description} />
-          </ResizablePanel>
-          <ResizableHandle withHandle />
-          <ResizablePanel defaultSize={50}>
-            <ResizablePanelGroup direction="vertical">
-              <ResizablePanel defaultSize={25}>
-              <RightComponent />
-              </ResizablePanel>
-              <ResizableHandle withHandle />
-              <ResizablePanel defaultSize={75}>
-                <div className="flex h-full items-center justify-center p-6">
-                  <span className="font-semibold">Three</span>
-                </div>
-              </ResizablePanel>
-            </ResizablePanelGroup>
-          </ResizablePanel>
-        </ResizablePanelGroup>
+    <div className="">
+      <ResizablePanelGroup
+        direction="horizontal"
+        className="w-screen h-screen"
+      >
+        {/* LEFT SIDE: vertical stack */}
+        <ResizablePanel defaultSize={50}>
+          <ResizablePanelGroup direction="vertical">
+            <ResizablePanel defaultSize={65}>
+              <div className={border_style + " "}>
+                <LeftComponent title={title} description={description} />
+              </div>
+            </ResizablePanel>
+            <ResizableHandle className="flex-1 bg-black h-1.5" withHandle />
+            <ResizablePanel defaultSize={35} minSize={20}>
+              <div className={border_style}>
+                <span className="font-semibold">Three</span>
+              </div>
+            </ResizablePanel>
+          </ResizablePanelGroup>
+        </ResizablePanel>
+
+        {/* Handle between LEFT + RIGHT */}
+        <ResizableHandle className="bg-black w-1.5" withHandle />
+
+        {/* RIGHT SIDE */}
+        <ResizablePanel>
+          <div className={border_style}>
+            <RightComponent codeTemplate={codeTemplate} />
+          </div>
+        </ResizablePanel>
+      </ResizablePanelGroup>
+    </div>
     )
 }
