@@ -49,33 +49,35 @@ func processJSON(json database.AddProblemRequestType) database.DBAddProblemReque
 
 func add_question_handler(db *database.Database) gin.HandlerFunc {
 	return func(c *gin.Context) {
-			var json database.AddProblemRequestType
-			if c.Bind(&json) == nil {
-				// log.Printf("Got json: %v", json)
-				db_json := processJSON(json)
-				err := db.InsertOne(DATABASE, COLLECTION, db_json)
-				if err != nil {
-					log.Printf("error while inserting document to database: %v", err)
-					c.JSON(http.StatusOK, gin.H{"status": "error"})
-				} else {
-					log.Println("Successfully inserted document to database")
-					c.JSON(http.StatusOK, gin.H{"status": "success"})
-				}
+		var json database.AddProblemRequestType
+		if c.Bind(&json) == nil {
+			// log.Printf("Got json: %v", json)
+			db_json := processJSON(json)
+			log.Println("PROCESSED JSON", db_json)
+			err := db.InsertOne(DATABASE, COLLECTION, db_json)
+			if err != nil {
+				log.Printf("error while inserting document to database: %v", err)
+				c.JSON(http.StatusOK, gin.H{"status": "error"})
+			} else {
+				log.Println("Successfully inserted document to database")
+				c.JSON(http.StatusOK, gin.H{"status": "success"})
 			}
+		}
 	}
 }
 
 func get_question_details_handler(db *database.Database) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		slug_title := c.Params.ByName("title_slug")
+		log.Println("slug: ", slug_title, "length: ", len(slug_title))
 		var db_response database.DBAddProblemRequestType
 		// TODO: This responds with the whole record. we don't need everything
 		// this returns including the testcases
 		// just return the title, description
-		filter := database.D{{Key: "titleslug", Value: slug_title}}
+		filter := database.M{"title_slug": slug_title}
 		err := database.FindOneDocument(db, DATABASE, COLLECTION, filter, &db_response)
-		if (err != nil) {
-			if (err == database.NO_DOCUMENTS) {
+		if err != nil {
+			if err == database.NO_DOCUMENTS {
 				c.JSON(http.StatusNotFound, gin.H{"status": "Document not Found"})
 			} else {
 				log.Printf("ERROR: Error in finding document due to: %v", err)
