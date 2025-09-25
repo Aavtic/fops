@@ -1,9 +1,11 @@
 "use client";
 
 import { useState } from "react"
+import CodeMirror from '@uiw/react-codemirror';
+import { python } from '@codemirror/lang-python';
+import { oneDark } from '@codemirror/theme-one-dark';
 
 import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 
 
@@ -23,7 +25,7 @@ function TestCodeButton({ onClickFn } : { onClickFn: () => any }) {
     )
 }
 
-function TextArea(
+function CodeEditor(
     { 
         setContent, code }: {
         setContent: (value: string) => void,
@@ -33,9 +35,26 @@ function TextArea(
 {
     return (
         <div className="grid w-full gap-3">
-          <Label htmlFor="message-2"></Label>
-          <Textarea value={ code }onChange={(e) => setContent(e.target.value)}placeholder="Write your code here..." id="message-2" 
-          className="h-72 bg-gray-400"/>
+          <Label htmlFor="code-editor"></Label>
+          <CodeMirror
+            value={code}
+            height="288px"
+            extensions={[python()]}
+            theme={oneDark}
+            onChange={(value) => setContent(value)}
+            className="text-left"
+            basicSetup={{
+              lineNumbers: true,
+              foldGutter: true,
+              dropCursor: true,
+              allowMultipleSelections: true,
+              indentOnInput: true,
+              bracketMatching: true,
+              closeBrackets: true,
+              autocompletion: true,
+              highlightSelectionMatches: true,
+            }}
+          />
         </div>
     )
 }
@@ -51,7 +70,7 @@ export default function RightComponent({codeTemplate}: {codeTemplate: string}) {
     <div className="h-screen bg-white">
         <h1 className="italic text-4xl">Editor</h1>
         
-        <TextArea code={codeContent} setContent={setCodeContent} />
+        <CodeEditor code={codeContent} setContent={setCodeContent} />
 
         <div>
         <RunButton onClickFn={onClickFn} />
