@@ -1,4 +1,8 @@
 package database
+
+import (
+)
+
 // SAMPLE
 // {
 //   "title": "asdf",
@@ -14,6 +18,12 @@ package database
 //     }
 //   ]
 // }
+
+type InputOutput struct {
+	Input string `json:"input" bson:"input"`
+	Output string `json:"output" bson:"output"`
+}
+
 type AddProblemRequestType struct {
 	Title string `json:"title"`
 	Description string `json:"description"`
@@ -21,23 +31,20 @@ type AddProblemRequestType struct {
 	ParameterName string `json:"parameter_name"`
 	InputType string `json:"input_type"`
 	OutputType string `json:"output_type"`
-	InputOutput []struct {
-		Input string `json:"input"`
-		Output string `json:"output"`
-	} `json:"input_output"`
+	InputOutput []InputOutput `json:"input_output"` 
 }
 
 type DBAddProblemRequestType struct {
-	Title string `json:"title"`
-	TitleSlug string `json:"titleSlug"`
-	Description string `json:"description"`
-	FunctionName string `json:"function_name"`
-	ParameterName string `json:"parameter_name"`
-	InputType string `json:"input_type"`
-	OutputType string `json:"output_type"`
-	InputOutput []struct {
-		Input string `json:"input"`
-		Output string `json:"output"`
-	}
+	ProblemId string `bson:"uid"`
+	Title string `bson:"title"`
+	TitleSlug string `bson:"title_slug"`
+	Description string `bson:"description"`
+	FunctionName string `bson:"function_name"`
+	ParameterName string `bson:"parameter_name"`
+	InputType string `bson:"input_type"`
+	OutputType string `bson:"output_type"`
+	InputOutput []InputOutput `bson:"input_output"`
 	CodeTemplate string `json:"code_template"`
 }
+
+type DBProblemType = DBAddProblemRequestType;

@@ -7,9 +7,11 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type D = bson.D
+type M = bson.M
 var NO_DOCUMENTS = mongo.ErrNoDocuments
 
 type Database struct {
@@ -44,10 +46,16 @@ func (db *Database) Disconnect() {
 	}
 }
 
-func FindOneDocument[T any](db *Database, database, collection string, filter D, result *T) error {
-	opts := options.FindOne()
-	coll := db.GetCollection(database, collection)
+func NewID() primitive.ObjectID {
+	return primitive.NewObjectID()
+}
 
-	err := coll.FindOne(context.TODO(), filter, opts).Decode(&result)
-	return err
+func NewIDFromHex(hex string) (primitive.ObjectID, error){
+	return primitive.ObjectIDFromHex(hex)
+}
+
+func FindOneDocument(db *Database, database, collection string, filter any, result any) error {
+	coll := db.GetCollection(database, collection)
+	res := coll.FindOne(context.TODO(), filter).Decode(result)
+	return res;
 }
