@@ -8,7 +8,9 @@ class URCodeErrorLOL(Exception):
     "status": "URCodeErrorLOL",
     "info": 
         {
-            "error": "%s"
+            "URCodeErrorLOL": {
+                "error": "%s"
+            }
         }
 }''' % self.error
 
@@ -24,7 +26,7 @@ class Fail(Exception):
         # return '{"status": "URCodeErrorLOL", "error": "' + str(self.error) + '"}'
         return '''
 {
-        "status": "URCodeErrorLOL",
+        "status": "Fail",
         "info": {
             "Fail": {
                 "ex": "%s",
@@ -34,14 +36,14 @@ class Fail(Exception):
         }
 }''' % (self.exp, self.got, self.input)
 
-class Cooked:
+class Cooked(Exception):
     def __init__(self, error):
         self.error = error
 
     def to_string(self):
         return '''
 {
-        "status": "URCodeErrorLOL",
+        "status": "Cooked",
         "info": {
             "Cooked": {
                 "error": "%s"
@@ -59,11 +61,24 @@ class Pass:
         return '''
 {
         "status": "Pass",
-        "execution_time": 
         "info": {
-            "execution_time": "%s"
-            "average_time": "%s"
-            "Pass": "%s"
+            "Pass": {
+                "execution_time": "%s",
+                "average_time": "%s",
+                "Pass": %s
+            }
         }
-}
-    ''' % (self.total_exec_ms, self.avg_ms, self.data)
+}''' % (self.total_exec_ms, self.avg_ms, self.data)
+    
+    def to_dict(self):
+        return {
+            "status": "Pass",
+            "info": {
+                "Pass": {
+                    "execution_time":  self.total_exec_ms,
+                    "average_time": self.avg_ms,
+                    "Pass": self.data
+                }
+            }
+        }
+
