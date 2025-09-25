@@ -15,8 +15,6 @@ func GetResponseJson(judgeResponse string) (Response, error) {
 		return Response{}, err
 	}
 
-	log.Println("status: ", response.Status)
-
 	responseStatus := response.Status
 	switch (responseStatus) {
 	case URCodeErrorLOL_T:
@@ -73,12 +71,16 @@ func ParsePass(response *ResponsePartial) (Response, error) {
 	var pass Pass
 	info := response.Info[Pass_T]
 	err := json.Unmarshal([]byte(info), &pass)
+	if err != nil {
+		log.Println("lol here")
+		return Response{}, err
+	}
 	result.Status = Pass_T
 	result.Info = make(map[ResponseStatus]any)
 	result.Info[Pass_T] = pass
-	// temp := result.Info[Pass_T].(Pass)
-	// temp.Pass = make([]PassInfo, 1)
-	// result.Info[Pass_T] = temp
+	temp := result.Info[Pass_T].(Pass)
+	temp.Pass = pass.Pass
+	result.Info[Pass_T] = temp
 	// result.Info[Pass_T] = pass
 	return result, err
 }

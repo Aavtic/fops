@@ -92,13 +92,13 @@ type PassInfo struct {
 	Expected string  `json:"expected"`
 	Got string 			 `json:"got"`
 	Input string 	   `json:"input"`
-	MS string 			 `json:"ms"`
+	MS float32 `json:"ms"`
 }
 
 type Pass struct {
-	ExecutionTime string `json:"execution_time"`
-	AverageTime string 	 `json:"average_time"`
-	Pass []PassInfo      `json:"pass"`
+	ExecutionTime float32 `json:"execution_time"`
+	AverageTime float32 `json:"average_time"`
+	Pass []PassInfo      `json:"Pass"`
 }
 
 type ResponsePartial struct {
