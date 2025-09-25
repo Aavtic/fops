@@ -9,7 +9,7 @@ import (
 	"github.com/aavtic/fops/utils/fs"
 )
 
-const DEBUG_MODE = false
+const DEBUG_MODE = true
 
 const JUDGE string = "../code_execution/language_execution/python_test/judge.py" 
 // COMMAND: PYTHONPATH=<source_path> python3 JUDGE --output <output_path>

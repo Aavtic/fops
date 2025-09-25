@@ -1,24 +1,28 @@
 package server
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 
+	"github.com/aavtic/fops/internal/coapi"
+	"github.com/aavtic/fops/internal/database"
 	"github.com/aavtic/fops/internal/env"
 	"github.com/aavtic/fops/internal/launcher/python-launcher"
 	"github.com/aavtic/fops/utils/fs"
 	"github.com/aavtic/fops/utils/logging"
-	"github.com/aavtic/fops/internal/database"
 	"github.com/aavtic/fops/utils/templates"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"github.com/gosimple/slug"
+	// "go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-var PORT int = 8080
-var DATABASE string = "fops"
-var COLLECTION string = "problems"
+const PORT int = 8080
+const DATABASE string = "fops"
+const COLLECTION string = "problems"
 
 // TODO
 // Ensure that title is unique
@@ -29,16 +33,18 @@ func processJSON(json database.AddProblemRequestType) database.DBAddProblemReque
 	// Make this language agnostic
 	python_template := templates.GeneratePythonTemplate(json.FunctionName, json.ParameterName, json.InputType, json.OutputType)
 	log.Println("created python template code:", python_template)
-	var db_json database.DBAddProblemRequestType
-	db_json.Title = json.Title
-	db_json.TitleSlug = slug_title
-	db_json.Description = json.Description
-	db_json.FunctionName = json.FunctionName
-	db_json.ParameterName = json.ParameterName
-	db_json.InputType = json.InputType
-	db_json.OutputType = json.OutputType
-	db_json.InputOutput = json.InputOutput
-	db_json.CodeTemplate = python_template
+	var db_json = database.DBAddProblemRequestType{
+		ProblemId:     uuid.New().String(),
+		Title:         json.Title,
+		TitleSlug:     slug_title,
+		Description:   json.Description,
+		FunctionName:  json.FunctionName,
+		ParameterName: json.ParameterName,
+		InputType:     json.InputType,
+		OutputType:    json.OutputType,
+		InputOutput:   json.InputOutput,
+		CodeTemplate:  python_template,
+	}
 
 	log.Println("Function name: ", json.FunctionName)
 	log.Println("Input name: ", json.ParameterName)
@@ -85,12 +91,16 @@ func get_question_details_handler(db *database.Database) gin.HandlerFunc {
 			}
 			return
 		}
+
+		log.Printf("DB Response: %v", db_response)
 		type ResponseJson struct {
-			Title string `json:"title"`
-			Description string `json:"description"`
+			ID           string `json:"id"`
+			Title        string `json:"title"`
+			Description  string `json:"description"`
 			CodeTemplate string `json:"code_template"`
 		}
 		var response ResponseJson
+		response.ID = db_response.ProblemId
 		response.Title = db_response.Title
 		response.Description = db_response.Description
 		response.CodeTemplate = db_response.CodeTemplate
@@ -100,17 +110,72 @@ func get_question_details_handler(db *database.Database) gin.HandlerFunc {
 	}
 }
 
+// POST REQUEST
+// Expected Data
+//
+//	{
+//		"id": <question unique id>,
+//		"code": <code>,
+//		"lang": <language>,
+//	}
+func test_code_handler(db *database.Database) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var request coapi.TestQuestionRequest
+		if c.Bind(&request) == nil {
+			var response database.DBProblemType
+			log.Println("ID: ", request.ID)
+			log.Println("Request: ", request)
+			id := request.ID
+			log.Printf("ID: %v", id)
+			filter := database.M{"uid": id}
+			err := database.FindOneDocument(db, DATABASE, COLLECTION, filter, &response)
+			if err != nil {
+				log.Printf("ERROR: Could not find document due to: %v\n", err)
+				c.JSON(http.StatusBadRequest, gin.H{"error": "Could not find problem with that id. Please refer https://github.com/aavtic/fops"})
+				return
+			}
+			log.Printf("SUCCESS: Found document: %v\n", response)
+
+			question_template := coapi.QuestionTemplate{
+				ID: response.ProblemId,
+				Title: response.Title,
+				Description: response.Description,
+				FunctionName: response.FunctionName,
+				InputType: response.InputType,
+				OutputType: response.OutputType,
+				InputOutput: response.InputOutput,
+			}
+
+			template, err := json.Marshal(question_template)
+			if err != nil {
+				log.Println("ERROR: Could not marshall data due to: ", err)
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "An unexpected error occured in the server. oops..."})
+				return
+			}
+
+			coapi_response, err := TestCode(request.Lang, request.Code, string(template))
+			if err != nil {
+				log.Printf("ERROR: Could not get coapi json due to %v", err)
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "An unexpected error occured in the server. oops..."})
+			}
+			log.Printf("INFO: COAPI RESPONSE: %v", coapi_response)
+		} else {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Missing expected values in json. Please refer https://github.com/aavtic/fops"})
+		}
+	}
+}
+
 func SetupRouter(db *database.Database) *gin.Engine {
 	r := gin.Default()
 
 	r.GET("/api/db/get_question_details/:title_slug", get_question_details_handler(db))
 	r.POST("/api/db/add_question", add_question_handler(db))
-
+	r.POST("/api/coapi/test", test_code_handler(db))
 	return r
 }
 
 func Run() {
-	db := database.Connect("mongodb://localhost:27017/");
+	db := database.Connect("mongodb://localhost:27017/")
 	defer db.Disconnect()
 	r := SetupRouter(db)
 
@@ -118,52 +183,39 @@ func Run() {
 	r.Run(":" + fmt.Sprintf("%d", PORT))
 }
 
-func Run2() {
+func TestCode(language, code, problem_template string) (coapi.Response, error) {
+	_ = language
 	log.Println("[+] Server up and running...")
 	env_vars := env.LoadEnv()
 
 	logging.LogAll(
 		"Code storage: "+env_vars.Code_storage,
-		"Output details: " + env_vars.Output_details,
-		"Code templates: " + env_vars.Code_templates,
+		"Output details: "+env_vars.Output_details,
+		"Code templates: "+env_vars.Code_templates,
 	)
 
 	// Temp
 
 	temp_dir, err := fs.CreateTempDir(env_vars.Code_storage, "py")
 	logging.ExitIfError(err, "Could not create temp dir due to")
-	
-	temp_code := `
-class Solution:
-    def fibonacci(self, n):
-        if n <= 2: return 1
-        return self.fibonacci(n-2) + self.fibonacci(n-1) 
-`
-
-	problem_template := `
-{
-    "title": "Fibonacci",
-    "description": "Fibo!",
-    "function_name": "fibonacci",
-    "input_type": "Integer",
-    "output_type": "Integer",
-    "input_output": [
-        [[0], 1],
-        [[1], 1],
-        [[2], 1],
-        [[3], 2],
-        [[5], 5]
-    ]
-}
-	`
 
 	code_file := temp_dir + "/main.py"
-	logging.ExitIfError(fs.Create_file_and_write(code_file, temp_code), "Could not create or write to " + code_file + " due to ")
+	err = fs.Create_file_and_write(code_file, code)
+	if err != nil {
+		log.Println("Could not create and file or write to file: ", err)
+		return coapi.Response{}, err
+	}
 
 	log.Println("Written to file successfully!")
 
-	response, err := pythonlauncher.Launch(temp_dir, "./output.json", problem_template)
+	response_str, err := pythonlauncher.Launch(temp_dir, "./output.json", problem_template)
+	// TODO: LOG the error don't exit
 	logging.ExitIfError(err, "Could not run Launch python program due to ")
-
-	log.Println(response)
+	log.Println("INFO: JUDGE RESPONSE: ", response_str)
+	response, err := coapi.GetResponseJson(response_str)
+	if err != nil {
+		log.Printf("ERROR: FAILED TO PARSE JUDGE RESPONSE DUE TO %v", err)
+		return coapi.Response{}, err
+	}
+	return response, nil
 }
