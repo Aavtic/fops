@@ -1,3 +1,4 @@
+from pyTypes import PYTypes, CouldNotConvertToPythonType
 import argparse
 import sys
 import json
@@ -26,7 +27,10 @@ class Judge:
 
     def judge(self):
         problem_details = self.parse_str_to_json(self.problem_details)
+        input_type = problem_details["input_type"]
+        output_type = problem_details["output_type"]
         function_name = problem_details["function_name"]
+        pytypes = PYTypes()
         # "Pass": [
         #     {
         #         "expected": <exp>,
@@ -62,13 +66,22 @@ class Judge:
                 raise URCodeErrorLOL("No function named %s found" % function_name)
 
             for input_output in problem_details["input_output"]:
-                input = input_output[0]
-                output = input_output[1]
+                try:
+                    arguments = pytypes.getPythonType(input_type, input_output["input"])
+                except CouldNotConvertToPythonType as c:
+                    raise Cooked(c.to_string())
+                try:
+                    output = pytypes.getPythonType(output_type, input_output["output"])
+                except CouldNotConvertToPythonType as c:
+                    raise Cooked(c.to_string())
 
                 start_time = datetime.now()
 
                 try:
-                    result = fn(*input)
+                    print("DEBUG: {}, type: {}".format(arguments, type(arguments)))
+                    # TODO: implement multiple argument
+                    # result = fn(*input)
+                    result = fn(arguments)
                 except Exception as e:
                     raise URCodeErrorLOL(str(e))
 
@@ -76,11 +89,14 @@ class Judge:
                 execution_time = round((end_time - start_time).total_seconds() * 1000, 2)
 
                 if (type(result) != type(output)) or (result != output):
-                    raise Fail(expected=output, got=result, input=input)
+                    raise Fail(expected=output, got=result, input=arguments)
 
-                info["expected"] = output
-                info["got"] = result
-                info["input"] = input
+                ## TODO:
+                # Use the correct type instea of string
+                # This will help better display information
+                info["expected"] = str(output)
+                info["got"] = str(result)
+                info["input"] = str(arguments)
                 info["ms"] = execution_time
 
                 execution_informations.append(info)
@@ -94,10 +110,14 @@ class Judge:
             self.output = e.to_string()
             self.exit()
 
-        except Exception as e:
-            cooked = Cooked(str(e))
-            self.output = cooked.to_string()
+        except Cooked as c:
+            self.output = c.to_string()
             self.exit()
+
+        # except Exception as e:
+        #     cooked = Cooked(str(e))
+        #     self.output = cooked.to_string()
+        #     self.exit()
 
         else:
             execution_end_time = datetime.now()
@@ -105,14 +125,18 @@ class Judge:
             average_ms = sum([i["ms"] for i in execution_informations]) / len(execution_informations)
 
             pass_data = Pass(execution_ms, average_ms, execution_informations)
-            self.output = pass_data.to_string()
+            self.output = self.get_json_str(pass_data.to_dict())
             self.exit()
+
 
     def exit(self):
         with open(self.output_file, "w") as f:
             f.write(self.output)
 
         sys.exit(0)
+
+    def get_json_str(self, input):
+        return json.dumps(input)
 
     def parse_str_to_json(self, input: str):
         return json.loads(input)
