@@ -33,10 +33,14 @@ Example:
     input_type: "Integer",
     output_type: "Integer",
     input_output: [
-        [[0], 1],
-        [[1], 1],
-        [[2], 2],
-        [[5], 120],
+        {
+            "input": [5, ...],
+            "output": [5, ...]
+        },
+        {
+            "input": [6, ...],
+            "output": [69, ...]
+        },
     ]
 }
 
@@ -53,13 +57,15 @@ This means there can be multiple input to a program and also multiple output to 
 
 #### Supported Types
 
-1. int,
-2. bool,
-3. str,
-4. List[str],
-5. List[int],
-6. List[float],
-7. List[bool],
+
+1. Integer
+2. Boolean
+3. String
+4. Float
+5. ListOfInt
+6. ListOfBoolean
+7. ListOfStr
+8. ListOfFloat
 
 ## Usage
 
