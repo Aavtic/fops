@@ -51,7 +51,7 @@ function CodeEditor(
               indentOnInput: true,
               bracketMatching: true,
               closeBrackets: true,
-              autocompletion: true,
+              autocompletion: false,
               highlightSelectionMatches: true,
             }}
           />
