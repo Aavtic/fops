@@ -33,31 +33,50 @@ import { Textarea } from "@/components/ui/textarea"
 
 function InputOutputButtonGroup() {
     const { control, register } = useFormContext()
-    const { fields, append } = useFieldArray({
+    const { fields, append, remove } = useFieldArray({
         control,
         name: "input_output",
     })
 
     return (
-        <div className="space-y-4">
+        <div className="space-y-2 sm:space-y-3">
             {fields.map((field, index) => (
-                <div key={field.id} className="flex gap-2">
-                    <Input
-                        placeholder="Input"
-                        {...register(`input_output.${index}.input` as const)}
-                    />
-                    <Input
-                        placeholder="Output"
-                        {...register(`input_output.${index}.output` as const)}
-                    />
+                <div key={field.id} className="flex flex-col sm:flex-row gap-2 sm:gap-3 items-stretch sm:items-center p-2 sm:p-3 bg-slate-50 rounded-lg border border-slate-200 hover:border-slate-300 transition-colors">
+                    <div className="flex-1">
+                        <Input
+                            placeholder="Input (e.g., 5)"
+                            className="bg-white h-9 sm:h-10 text-sm"
+                            {...register(`input_output.${index}.input` as const)}
+                        />
+                    </div>
+                    <span className="text-slate-400 font-bold text-center sm:text-left hidden sm:block">→</span>
+                    <span className="text-slate-400 font-bold text-center sm:hidden">↓</span>
+                    <div className="flex-1">
+                        <Input
+                            placeholder="Expected output"
+                            className="bg-white h-9 sm:h-10 text-sm"
+                            {...register(`input_output.${index}.output` as const)}
+                        />
+                    </div>
+                    <Button
+                        type="button"
+                        variant="destructive"
+                        size="icon"
+                        onClick={() => remove(index)}
+                        className="h-9 w-9 sm:h-10 sm:w-10 shrink-0 hover:bg-red-600"
+                        title="Remove test case"
+                    >
+                        ✕
+                    </Button>
                 </div>
             ))}
             <Button
                 type="button"
                 variant="outline"
                 onClick={() => append({ input: "", output: "" })}
+                className="w-full border-dashed border-2 hover:bg-blue-50 hover:border-blue-400 hover:text-blue-600 transition-all h-10 sm:h-11 text-sm sm:text-base"
             >
-                Add
+                + Add Test Case
             </Button>
         </div>
     )
@@ -109,6 +128,9 @@ export function InputForm() {
             description: "",
             function_name: "",
             parameter_name: "",
+            input_type: "",
+            output_type: "",
+            input_output: [{ input: "", output: "" }],
         },
     })
 
@@ -150,15 +172,24 @@ export function InputForm() {
 
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="w-2/3 space-y-6">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="w-full max-w-4xl mx-auto space-y-6 sm:space-y-8 p-4 sm:p-6 md:p-8 bg-white rounded-xl shadow-lg border border-slate-200">
+                <div className="space-y-2 border-b pb-3 sm:pb-4">
+                    <h2 className="text-2xl sm:text-3xl font-bold text-slate-800">Create New Problem</h2>
+                    <p className="text-sm sm:text-base text-slate-500">Define your coding challenge with test cases</p>
+                </div>
+
                 <FormField control={form.control} name="title" render={({ field }) => (
                     <FormItem>
-                        <FormLabel>Title</FormLabel>
+                        <FormLabel className="text-sm sm:text-base font-semibold text-slate-700">Problem Title</FormLabel>
                         <FormControl>
-                            <Input placeholder="Fibonacci" {...field} />
+                            <Input 
+                                placeholder="e.g., Fibonacci Sequence" 
+                                className="h-10 sm:h-11 text-sm sm:text-base"
+                                {...field} 
+                            />
                         </FormControl>
-                        <FormDescription>
-                            This will be the title
+                        <FormDescription className="text-xs sm:text-sm text-slate-500">
+                            Give your problem a clear and descriptive title
                         </FormDescription>
                         <FormMessage />
                     </FormItem>
@@ -168,16 +199,16 @@ export function InputForm() {
 
                 <FormField control={form.control} name="description" render={({ field }) => (
                     <FormItem>
-                        <FormLabel>Description</FormLabel>
+                        <FormLabel className="text-sm sm:text-base font-semibold text-slate-700">Problem Description</FormLabel>
                         <FormControl>
                             <Textarea
-                                placeholder="Give a brief description about the problem, Markdown is recommended"
-                                className="resize-none"
+                                placeholder="Describe the problem in detail. You can use Markdown formatting for better readability..."
+                                className="resize-none min-h-24 sm:min-h-32 text-sm sm:text-base"
                                 {...field}
                             />
                         </FormControl>
-                        <FormDescription>
-                            This will be the description
+                        <FormDescription className="text-xs sm:text-sm text-slate-500">
+                            Provide a comprehensive description. Markdown formatting is supported.
                         </FormDescription>
                         <FormMessage />
                     </FormItem>
@@ -185,134 +216,172 @@ export function InputForm() {
                 />
 
 
-                <FormField control={form.control} name="function_name" render={({ field }) => (
-                    <FormItem>
-                        <FormLabel>Function Name</FormLabel>
-                        <FormControl>
-                            <Input placeholder="fibonacci" {...field} />
-                        </FormControl>
-                        <FormDescription>
-                            This will be the function name
-                        </FormDescription>
-                        <FormMessage />
-                    </FormItem>
-                )}
-                />
-
-                <FormField control={form.control} name="parameter_name" render={({ field }) => (
-                    <FormItem>
-                        <FormLabel>Parameter Name</FormLabel>
-                        <FormControl>
-                            <Input placeholder="n" {...field} />
-                        </FormControl>
-                        <FormDescription>
-                            This will be the function parameter name
-                        </FormDescription>
-                        <FormMessage />
-                    </FormItem>
-                )}
-                />
-
-
-                <FormField
-                    control={form.control}
-                    name="input_type"
-                    render={({ field }) => (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 p-3 sm:p-4 bg-slate-50 rounded-lg border border-slate-200">
+                    <FormField control={form.control} name="function_name" render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Input Type</FormLabel>
+                            <FormLabel className="text-sm sm:text-base font-semibold text-slate-700">Function Name</FormLabel>
                             <FormControl>
-                                <Select onValueChange={field.onChange} value={field.value}>
-                                    <SelectTrigger className="w-[180px]">
-                                        <SelectValue placeholder="Select a type" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectGroup>
-                                            <SelectLabel>Types</SelectLabel>
-                                            {[
-                                                "Integer",
-                                                "Float",
-                                                "Boolean",
-                                                "String",
-                                                "List[int]",
-                                                "List[float]",
-                                                "List[bool]",
-                                                "List[str]",
-                                            ].map((option) => (
-                                                <SelectItem key={option} value={option}>
-                                                    {option}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectGroup>
-                                    </SelectContent>
-                                </Select>
+                                <Input 
+                                    placeholder="e.g., fibonacci" 
+                                    className="h-10 sm:h-11 font-mono text-sm sm:text-base bg-white"
+                                    {...field} 
+                                />
                             </FormControl>
-                            <FormDescription>
-                                Type of function parameter
+                            <FormDescription className="text-xs sm:text-sm text-slate-500">
+                                The name of the function to be implemented
                             </FormDescription>
                             <FormMessage />
                         </FormItem>
                     )}
-                />
+                    />
 
-
-                <FormField
-                    control={form.control}
-                    name="output_type"
-                    render={({ field }) => (
+                    <FormField control={form.control} name="parameter_name" render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Output Type</FormLabel>
+                            <FormLabel className="text-sm sm:text-base font-semibold text-slate-700">Parameter Name</FormLabel>
                             <FormControl>
-                                <Select onValueChange={field.onChange} value={field.value}>
-                                    <SelectTrigger className="w-[180px]">
-                                        <SelectValue placeholder="Select a type" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectGroup>
-                                            <SelectLabel>Types</SelectLabel>
-                                            {[
-                                                "Integer",
-                                                "Float",
-                                                "Boolean",
-                                                "String",
-                                                "List[int]",
-                                                "List[float]",
-                                                "List[bool]",
-                                                "List[str]",
-                                            ].map((option) => (
-                                                <SelectItem key={option} value={option}>
-                                                    {option}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectGroup>
-                                    </SelectContent>
-                                </Select>
+                                <Input 
+                                    placeholder="e.g., n" 
+                                    className="h-10 sm:h-11 font-mono text-sm sm:text-base bg-white"
+                                    {...field} 
+                                />
                             </FormControl>
-                            <FormDescription>
-                                Type of function output
+                            <FormDescription className="text-xs sm:text-sm text-slate-500">
+                                The input parameter for the function
                             </FormDescription>
                             <FormMessage />
                         </FormItem>
                     )}
-                />
+                    />
+                </div>
+
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                    <FormField
+                        control={form.control}
+                        name="input_type"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel className="text-sm sm:text-base font-semibold text-slate-700">Input Type</FormLabel>
+                                <FormControl>
+                                    <Select onValueChange={field.onChange} value={field.value}>
+                                        <SelectTrigger className="w-full h-10 sm:h-11 text-sm sm:text-base">
+                                            <SelectValue placeholder="Select input type" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectGroup>
+                                                <SelectLabel className="font-semibold text-slate-600 text-xs sm:text-sm">Data Types</SelectLabel>
+                                                {[
+                                                    "Integer",
+                                                    "Float",
+                                                    "Boolean",
+                                                    "String",
+                                                    "List[int]",
+                                                    "List[float]",
+                                                    "List[bool]",
+                                                    "List[str]",
+                                                ].map((option) => (
+                                                    <SelectItem key={option} value={option} className="cursor-pointer">
+                                                        <span className="font-mono text-xs sm:text-sm">{option}</span>
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectGroup>
+                                        </SelectContent>
+                                    </Select>
+                                </FormControl>
+                                <FormDescription className="text-xs sm:text-sm text-slate-500">
+                                    Data type of the function parameter
+                                </FormDescription>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+
+
+                    <FormField
+                        control={form.control}
+                        name="output_type"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel className="text-sm sm:text-base font-semibold text-slate-700">Output Type</FormLabel>
+                                <FormControl>
+                                    <Select onValueChange={field.onChange} value={field.value}>
+                                        <SelectTrigger className="w-full h-10 sm:h-11 text-sm sm:text-base">
+                                            <SelectValue placeholder="Select output type" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectGroup>
+                                                <SelectLabel className="font-semibold text-slate-600 text-xs sm:text-sm">Data Types</SelectLabel>
+                                                {[
+                                                    "Integer",
+                                                    "Float",
+                                                    "Boolean",
+                                                    "String",
+                                                    "List[int]",
+                                                    "List[float]",
+                                                    "List[bool]",
+                                                    "List[str]",
+                                                ].map((option) => (
+                                                    <SelectItem key={option} value={option} className="cursor-pointer">
+                                                        <span className="font-mono text-xs sm:text-sm">{option}</span>
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectGroup>
+                                        </SelectContent>
+                                    </Select>
+                                </FormControl>
+                                <FormDescription className="text-xs sm:text-sm text-slate-500">
+                                    Data type of the function return value
+                                </FormDescription>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                </div>
 
                 <FormField
                     control={form.control}
                     name="input_output"
                     render={() => (
-                        <FormItem>
-                            <FormLabel>Input and Output</FormLabel>
+                        <FormItem className="bg-gradient-to-br from-blue-50 to-indigo-50 p-3 sm:p-4 md:p-6 rounded-lg border-2 border-blue-200">
+                            <FormLabel className="text-base sm:text-lg font-bold text-slate-800 flex items-center gap-2">
+                                <span className="text-blue-600">📝</span>
+                                Test Cases
+                            </FormLabel>
                             <FormControl>
                                 <InputOutputButtonGroup />
                             </FormControl>
-                            <FormDescription>Define multiple input/output examples</FormDescription>
+                            <FormDescription className="text-xs sm:text-sm text-slate-600 mt-2">
+                                Add test cases to validate solutions. Each test case should have an input and expected output.
+                            </FormDescription>
                             <FormMessage />
                         </FormItem>
                     )}
                 />
 
-
-
-                <Button variant="outline" type="submit">Submit</Button>
+                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-4 sm:pt-6 border-t">
+                    <Button 
+                        type="submit" 
+                        className="w-full sm:flex-1 h-11 sm:h-12 text-sm sm:text-base font-semibold bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-md hover:shadow-lg transition-all"
+                    >
+                        Create Problem
+                    </Button>
+                    <Button 
+                        type="button" 
+                        variant="outline" 
+                        className="w-full sm:w-auto h-11 sm:h-12 px-6 sm:px-8 text-sm sm:text-base hover:bg-red-50 hover:text-red-600 hover:border-red-300"
+                        onClick={() => form.reset({
+                            title: "",
+                            description: "",
+                            function_name: "",
+                            parameter_name: "",
+                            input_type: "",
+                            output_type: "",
+                            input_output: [{ input: "", output: "" }],
+                        })}
+                    >
+                        Reset Form
+                    </Button>
+                </div>
             </form>
         </Form>
     )
