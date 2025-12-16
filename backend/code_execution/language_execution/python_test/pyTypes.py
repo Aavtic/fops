@@ -29,7 +29,7 @@ class PYTypes:
 
             case "Boolean":
                 try:
-                    return bool(value)
+                    return True if str(value).lower() == "true" else False 
                 except:
                     raise CouldNotConvertToPythonType(type, value)
 

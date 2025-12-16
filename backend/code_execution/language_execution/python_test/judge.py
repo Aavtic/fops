@@ -72,6 +72,7 @@ class Judge:
                     raise Cooked(c.to_string())
                 try:
                     output = pytypes.getPythonType(output_type, input_output["output"])
+                    print("input:", input_output["input"], "output:", output)
                 except CouldNotConvertToPythonType as c:
                     raise Cooked(c.to_string())
 
