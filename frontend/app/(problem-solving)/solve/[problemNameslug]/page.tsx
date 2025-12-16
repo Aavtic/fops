@@ -1,8 +1,15 @@
 import EditorPage from "@/components/EditorPage/EditorPage"
 
-export default async function ProblemPage({params}: {params: {problemNameslug: string}}) {
-    const titleSlug = params.problemNameslug;
+import { apiFetch } from "@/lib/http/client"
+import { ProblemDetailsResponse } from "@/lib/responses/responses"
+
+export default async function ProblemPage({ params }: { params: Promise<{ problemNameslug: string }> }
+) {
+    const {problemNameslug} = await params;
+    console.log(problemNameslug);
+    const titleSlug = problemNameslug;
     const response = await getPageData(titleSlug)
+    var problem_id = ""
     var title = ""
     var description = ""
     var codeTemplate = ""
@@ -21,22 +28,24 @@ export default async function ProblemPage({params}: {params: {problemNameslug: s
                </>
     } else {
         console.log(response.data)
-        title = response.data.title
-        description = response.data.description
-        codeTemplate = response.data.code_template
+        problem_id = response.data!.id
+        title = response.data!.title
+        description = response.data!.description
+        codeTemplate = response.data!.code_template
     }
 
   return (
     <div>
-    <EditorPage title={title} description={description} codeTemplate={codeTemplate}/>
+    <EditorPage problem_id={problem_id} title={title} description={description} codeTemplate={codeTemplate}/>
     </div>
   );
 }
 
 async function getPageData(titleSlug: string) {
-    const response = await fetch(`http://localhost:8080/api/db/get_question_details/${titleSlug}`);
+    const response = await apiFetch(`http://localhost:8080/api/db/get_question_details/${titleSlug}`);
+
     if (response.status === 200) {
-        const json = await response.json()
+        const json:ProblemDetailsResponse = await response.json()
         console.log(json)
         return {
             data: json,

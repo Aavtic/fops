@@ -1,5 +1,11 @@
+"use client"
+
 import LeftComponent from "./LeftComponent";
 import RightComponent from "./RightComponent";
+import TestOperations from "./TestOperations"
+import { Operation, DataState } from "./TestOperations"
+import { TestResults } from "./TestOperations"
+import { TestCodeAPI } from  './services'
 
 import {
   ResizableHandle,
@@ -7,8 +13,11 @@ import {
   ResizablePanelGroup,
 } from "@/components/ui/resizable"
 
+import { useState, useEffect } from 'react'
+
 
 type EditorProps = {
+    problem_id: string,
     title: string,
     description: string,
     codeTemplate: string,
@@ -19,7 +28,23 @@ type EditorProps = {
 {/* <RightComponent /> */}
 {/* </div> */}
 
-export default function EditorPage({title, description, codeTemplate}: EditorProps) {
+export default function EditorPage({problem_id, title, description, codeTemplate}: EditorProps) {
+    const [result, setResults] = useState<TestResults>();
+    const [dataState, setDataState] = useState<DataState>();
+    const [code, setCode] = useState<string>(codeTemplate);
+    const [op, setOp] = useState<Operation>();
+
+    useEffect(() => {
+        setCode(codeTemplate);
+        setOp(Operation.NoOp);
+    }, [])
+
+    useEffect(() => {
+        if (result === undefined) return;
+        setDataState({ResultData: result})
+        setOp(Operation.ResultOp);
+    }, [result])
+
     const border_style = "m-2 p-2 rounded-xl border-2 border-cyan-800 overflow-hidden";
     return (
     <div className="">
@@ -38,7 +63,11 @@ export default function EditorPage({title, description, codeTemplate}: EditorPro
             <ResizableHandle className="flex-1 bg-black h-1.5" withHandle />
             <ResizablePanel defaultSize={35} minSize={20}>
               <div className={border_style}>
-                <span className="font-semibold">Three</span>
+                <TestOperations 
+                    currentOperations={op == undefined ? Operation.NoOp : op} 
+                    setCurOp={setOp}
+                    data={dataState}
+                />
               </div>
             </ResizablePanel>
           </ResizablePanelGroup>
@@ -50,7 +79,13 @@ export default function EditorPage({title, description, codeTemplate}: EditorPro
         {/* RIGHT SIDE */}
         <ResizablePanel>
           <div className={border_style}>
-            <RightComponent codeTemplate={codeTemplate} />
+            <RightComponent 
+                problem_id={problem_id}
+                codeTemplate={code === undefined ? ("LOL THIS IS NOT THERE") : code}
+                setTestData={setResults}
+                testFn={TestCodeAPI}
+                runFn={() => console.log("UNIMPLEMENTED")}
+            />
           </div>
         </ResizablePanel>
       </ResizablePanelGroup>

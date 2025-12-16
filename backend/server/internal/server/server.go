@@ -15,6 +15,7 @@ import (
 	"github.com/aavtic/fops/utils/templates"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gin-contrib/cors"
 	"github.com/google/uuid"
 	"github.com/gosimple/slug"
 	// "go.mongodb.org/mongo-driver/bson/primitive"
@@ -153,12 +154,14 @@ func test_code_handler(db *database.Database) gin.HandlerFunc {
 				return
 			}
 
-			coapi_response, err := TestCode(request.Lang, request.Code, string(template))
+			coapi_response_any, err := TestCode(request.Lang, request.Code, string(template))
 			if err != nil {
 				log.Printf("ERROR: Could not get coapi json due to %v", err)
 				c.JSON(http.StatusInternalServerError, gin.H{"error": "An unexpected error occured in the server. oops..."})
 			}
-			log.Printf("INFO: COAPI RESPONSE: %v", coapi_response)
+			log.Printf("INFO: COAPI RESPONSE: %v", coapi_response_any)
+
+			c.JSON(http.StatusOK, coapi_response_any)
 		} else {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Missing expected values in json. Please refer https://github.com/aavtic/fops"})
 		}
@@ -167,6 +170,8 @@ func test_code_handler(db *database.Database) gin.HandlerFunc {
 
 func SetupRouter(db *database.Database) *gin.Engine {
 	r := gin.Default()
+
+	r.Use(cors.Default())
 
 	r.GET("/api/db/get_question_details/:title_slug", get_question_details_handler(db))
 	r.POST("/api/db/add_question", add_question_handler(db))
@@ -217,5 +222,6 @@ func TestCode(language, code, problem_template string) (coapi.Response, error) {
 		log.Printf("ERROR: FAILED TO PARSE JUDGE RESPONSE DUE TO %v", err)
 		return coapi.Response{}, err
 	}
+
 	return response, nil
 }

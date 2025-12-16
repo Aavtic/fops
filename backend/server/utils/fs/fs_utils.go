@@ -14,6 +14,7 @@ func CreateTempDir(path, prefix string) (string, error) {
 		"-d",
 		fmt.Sprintf("%s/%sXXXX", path, prefix),
 	}
+	fmt.Println(binary, args_arr[0], args_arr[1]);
 	cmd := exec.Command(binary, args_arr[0], args_arr[1])
 	output, err := cmd.Output()
 	if (err != nil) {

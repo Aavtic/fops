@@ -107,26 +107,78 @@ type ResponsePartial struct {
 }
 
 type Response struct {
-	Status ResponseStatus
-	Info map[ResponseStatus]any
+	Status ResponseStatus `json:"status"`
+	Info map[ResponseStatus]any `json:"info"`
 }
 
-type Response_URCodeErrorLOL struct {
-	Status ResponseStatus
-	Info map[ResponseStatus]URCodeErrorLOL
+type ResponseURCodeErrorLOL struct {
+	Status ResponseStatus `json:"status"`
+	Info map[ResponseStatus]URCodeErrorLOL `json:"info"`
 }
 
-type Response_Fail struct {
-	Status ResponseStatus
-	Info map[ResponseStatus]URCodeErrorLOL
+type ResponseFail struct {
+	Status ResponseStatus `json:"status"`
+	Info map[ResponseStatus]Fail `json:"info"`
 }
 
-type Response_Cooked struct {
-	Status ResponseStatus
-	Info map[ResponseStatus]URCodeErrorLOL
+type ResponseCooked struct {
+	Status ResponseStatus `json:"status"`
+	Info map[ResponseStatus]Cooked `json:"info"`
 }
 
-type Response_PasPass struct {
-	Status ResponseStatus
-	Info map[ResponseStatus]URCodeErrorLOL
+type ResponsePass struct {
+	Status ResponseStatus `json:"status"`
+	Info map[ResponseStatus]Pass `json:"info"`
+}
+
+func (res *Response) IntoCookedResponse() (ResponseCooked, error) {
+	var result ResponseCooked
+	var cooked Cooked
+	info := res.Info[Cooked_T]
+	err := json.Unmarshal([]byte(info.(string)), &cooked)
+	result.Status = Cooked_T
+	result.Info = make(map[ResponseStatus]Cooked)
+	result.Info[URCodeErrorLOL_T] = cooked
+	return result, err
+}
+
+
+func (res *Response) IntoURCodeErrorLOLResponse() (ResponseURCodeErrorLOL, error) {
+	var result ResponseURCodeErrorLOL 
+	var urcodeerrorlol URCodeErrorLOL
+	info := res.Info[URCodeErrorLOL_T]
+	err := json.Unmarshal([]byte(info.(string)), &urcodeerrorlol)
+	result.Status = URCodeErrorLOL_T
+	result.Info = make(map[ResponseStatus]URCodeErrorLOL)
+	result.Info[URCodeErrorLOL_T] = urcodeerrorlol
+	return result, err
+}
+
+func (res *Response) IntoFailResponse() (ResponseFail, error) {
+	var result ResponseFail
+	var fail Fail
+	info := res.Info[Fail_T]
+	err := json.Unmarshal([]byte(info.(string)), &fail)
+	result.Status = Fail_T
+	result.Info = make(map[ResponseStatus]Fail)
+	result.Info[Fail_T] = fail
+	return result, err
+}
+
+func (res *Response) IntoPassResponse() (ResponsePass, error) {
+	var result ResponsePass
+	var pass Pass
+	info := res.Info[Pass_T]
+	err := json.Unmarshal([]byte(info.(string)), &pass)
+	if err != nil {
+		return ResponsePass{}, err
+	}
+	result.Status = Pass_T
+	result.Info = make(map[ResponseStatus]Pass)
+	result.Info[Pass_T] = pass
+	temp := result.Info[Pass_T]
+	temp.Pass = pass.Pass
+	result.Info[Pass_T] = temp
+	// result.Info[Pass_T] = pass
+	return result, err
 }
