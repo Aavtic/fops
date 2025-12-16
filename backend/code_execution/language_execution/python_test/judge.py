@@ -99,7 +99,7 @@ class Judge:
                 info["input"] = str(arguments)
                 info["ms"] = execution_time
 
-                execution_informations.append(info)
+                execution_informations.append(info.copy())
 
 
         except URCodeErrorLOL as e:
