@@ -59,3 +59,14 @@ func FindOneDocument(db *Database, database, collection string, filter any, resu
 	res := coll.FindOne(context.TODO(), filter).Decode(result)
 	return res;
 }
+
+func FindAllDocuments(db *Database, database, collection string, filter any, results any) error {
+	coll := db.GetCollection(database, collection)
+	cursor, err := coll.Find(context.TODO(), bson.M{})
+	defer cursor.Close(context.Background())
+	if err != nil {
+		return err;
+	}
+
+	return cursor.All(context.TODO(), results)
+}

@@ -168,13 +168,27 @@ func test_code_handler(db *database.Database) gin.HandlerFunc {
 	}
 }
 
+func get_all_problems(db *database.Database) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		problems_list := make([]database.DBProblemType, 0)
+		if err := database.FindAllDocuments(db, DATABASE, COLLECTION, database.D{}, &problems_list); err != nil {
+			log.Println("ERROR: ", err);
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error fetching data from database"});
+		} else {
+			filteredData := database.FilterProblemData(problems_list)
+			c.JSON(http.StatusOK, gin.H{"problems": filteredData});
+		}
+	}
+}
+
 func SetupRouter(db *database.Database) *gin.Engine {
 	r := gin.Default()
 
 	r.Use(cors.Default())
 
-	r.GET("/api/db/get_question_details/:title_slug", get_question_details_handler(db))
-	r.POST("/api/db/add_question", add_question_handler(db))
+	r.GET("/api/db/problem/:title_slug", get_question_details_handler(db))
+	r.GET("/api/db/problem", get_all_problems(db));
+	r.POST("/api/db/problem", add_question_handler(db))
 	r.POST("/api/coapi/test", test_code_handler(db))
 	return r
 }
