@@ -45,19 +45,21 @@ class PYTypes:
                 except:
                     raise CouldNotConvertToPythonType(type, value)
 
-            case "ListOfInt":
+            case "List[int]":
                 try:
-                    return [int(no) for no in value if no.isdigit()]
+                    # Silently Ignore wrong values. This should be reported back and enforce a fix
+                    return self.convertToListOfInt(value)
                 except:
                     raise CouldNotConvertToPythonType(type, value)
 
-            case "ListOfBoolean":
+            case "List[bool]":
                 try:
-                    return [float(no) for no in value if self.isboolean(no)]
+                    return self.convertToListOfBool(value)
                 except:
                     raise CouldNotConvertToPythonType(type, value)
 
-            case "ListOfStr":
+            case "List[str]":
+                return self.convertToListOfStr(value)
                 ## TODO 
                 # Implement ts
                 raise CouldNotConvertToPythonType(type, value)
@@ -66,9 +68,9 @@ class PYTypes:
                 # except:
                 #     raise CouldNotConvertToPythonType(type, value)
 
-            case "ListOfFloat":
+            case "List[float]":
                 try:
-                    return [float(no) for no in value if self.isfloat(no)]
+                    return self.convertToListOfFloat(value)
                 except:
                     raise CouldNotConvertToPythonType(type, value)
             case _:
@@ -76,6 +78,26 @@ class PYTypes:
                 # add better error with msg
                 raise CouldNotConvertToPythonType(type, value)
 
+
+    def convertToListOfStr(self, val):
+        val = val[1:-1]
+        sp = [s.strip()[1:-1] for s in val.split(',')]
+        return sp 
+
+    def convertToListOfBool(self, val):
+        val = val[1:-1]
+        sp = val.split(',')
+        return [self.toboolean(b) for b in sp if self.isboolean(b)]
+
+    def convertToListOfInt(self, val):
+        val = val[1:-1]
+        sp = val.split(',')
+        return [int(n) for n in sp if n.strip().isdigit()]
+
+    def convertToListOfFloat(self, val):
+        val = val[1:-1]
+        sp = val.split(',')
+        return [float(n) for n in sp if self.isfloat(n.strip())]
                 
     def isfloat(self, no):
         try:
@@ -84,11 +106,17 @@ class PYTypes:
         except:
             return False
 
+    def toboolean(self, no):
+        ## TODO
+        # bool(..) returns true for any truthy value
+        if no.strip().lower() == "true":
+            return True
+        else:
+            return False
+
     def isboolean(self, no):
         ## TODO
         # bool(..) returns true for any truthy value
-        try:
-            bool(no)
+        if no.strip().lower() == "true" or no.strip().lower() == "false":
             return True
-        except:
-            return False
+        return False

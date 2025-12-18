@@ -146,7 +146,7 @@ const renderContent = (currentOperation: Operation, data: DataState | undefined)
             return (
                 <div className={`${contentContainerClasses} bg-green-100`}>
                     {
-                        data === null ? (<h1>No Results currently</h1>)
+                        (data === undefined || data?.ResultData === null) ? (<h1>No Results currently</h1>)
                         : (
                             renderResult(data!.ResultData as TestResults)
                         )
