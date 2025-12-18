@@ -1,1 +1,9 @@
-{"status": "Pass", "info": {"Pass": {"execution_time": 2.0, "average_time": 0.02, "Pass": [{"expected": "['ab', 'de', 'gh', 'jk']", "got": "['ab', 'de', 'gh', 'jk']", "input": "['abc', 'def', 'ghi', 'jkl']", "ms": 0.02}]}}}
+{
+    "status": "URCodeErrorLOL",
+    "info": 
+        {
+            "URCodeErrorLOL": {
+                "error": "No class named Solution found"
+            }
+        }
+}

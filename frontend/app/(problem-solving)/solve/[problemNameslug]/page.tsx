@@ -12,7 +12,7 @@ export default async function ProblemPage({ params }: { params: Promise<{ proble
     const response = await getPageData(titleSlug)
     var problem_id = ""
     var title = ""
-    var description = ""
+    var description_html = ""
     var codeTemplate = ""
 
     if (response.NotFound) {
@@ -31,13 +31,14 @@ export default async function ProblemPage({ params }: { params: Promise<{ proble
         console.log(response.data)
         problem_id = response.data!.id
         title = response.data!.title
-        description = response.data!.description
+        // description = response.data!.description
+        description_html = response.data!.description_html
         codeTemplate = response.data!.code_template
     }
 
   return (
     <div>
-    <EditorPage problem_id={problem_id} title={title} description={description} codeTemplate={codeTemplate}/>
+    <EditorPage problem_id={problem_id} title={title} description_html={description_html} codeTemplate={codeTemplate}/>
     </div>
   );
 }

@@ -42,13 +42,14 @@ function CodeEditor(
           <Label htmlFor="code-editor"></Label>
           <CodeMirror
             value={code}
-            height="288px"
+            height="488px"
             extensions={[python()]}
             theme={oneDark}
             onChange={(value) => setContent(value)}
             className="text-left"
             basicSetup={{
               lineNumbers: true,
+              tabSize: 4,
               foldGutter: true,
               dropCursor: true,
               allowMultipleSelections: true,

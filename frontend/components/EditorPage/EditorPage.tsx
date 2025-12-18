@@ -19,7 +19,7 @@ import { useState, useEffect } from 'react'
 type EditorProps = {
     problem_id: string,
     title: string,
-    description: string,
+    description_html: string,
     codeTemplate: string,
 }
 
@@ -28,7 +28,7 @@ type EditorProps = {
 {/* <RightComponent /> */}
 {/* </div> */}
 
-export default function EditorPage({problem_id, title, description, codeTemplate}: EditorProps) {
+export default function EditorPage({problem_id, title, description_html, codeTemplate}: EditorProps) {
     const [result, setResults] = useState<TestResults>();
     const [dataState, setDataState] = useState<DataState>();
     const [code, setCode] = useState<string>(codeTemplate);
@@ -57,7 +57,7 @@ export default function EditorPage({problem_id, title, description, codeTemplate
           <ResizablePanelGroup direction="vertical">
             <ResizablePanel defaultSize={65}>
               <div className={border_style + " "}>
-                <LeftComponent title={title} description={description} />
+                <LeftComponent title={title} description_html={description_html} />
               </div>
             </ResizablePanel>
             <ResizableHandle className="flex-1 bg-black h-1.5" withHandle />
