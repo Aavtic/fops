@@ -1,10 +1,12 @@
 import { NextResponse } from "next/server"
 
+import { AllProblemEndpoint } from '@/lib/http/endpoints'
+
 export async function POST(request: Request) {
     try {
         const json = await request.json();
         const response = await fetch(
-            "http://localhost:8080/api/db/add_question", {
+            AllProblemEndpoint, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"

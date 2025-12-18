@@ -8,6 +8,8 @@ import { z } from "zod"
 import { Button } from "@/components/ui/button"
 import { useFieldArray, useFormContext } from "react-hook-form"
 
+import { CreateProblemEndpoint } from '@/lib/http/endpoints'
+
 import {
     Select,
     SelectContent,
@@ -138,7 +140,7 @@ export function InputForm() {
 
         console.log(JSON.stringify(data));
 
-        fetch("http://localhost:3000/api/create", {
+        fetch(CreateProblemEndpoint, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",

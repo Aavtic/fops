@@ -1,6 +1,7 @@
 import EditorPage from "@/components/EditorPage/EditorPage"
 
 import { apiFetch } from "@/lib/http/client"
+import { AllProblemEndpoint } from '@/lib/http/endpoints'
 import { ProblemDetailsResponse } from "@/lib/responses/responses"
 
 export default async function ProblemPage({ params }: { params: Promise<{ problemNameslug: string }> }
@@ -42,7 +43,7 @@ export default async function ProblemPage({ params }: { params: Promise<{ proble
 }
 
 async function getPageData(titleSlug: string) {
-    const response = await apiFetch(`http://localhost:8080/api/db/get_question_details/${titleSlug}`);
+    const response = await apiFetch(`${AllProblemEndpoint}/${titleSlug}`);
 
     if (response.status === 200) {
         const json:ProblemDetailsResponse = await response.json()
