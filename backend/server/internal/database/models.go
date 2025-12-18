@@ -39,6 +39,7 @@ type DBAddProblemRequestType struct {
 	Title string `bson:"title"`
 	TitleSlug string `bson:"title_slug"`
 	Description string `bson:"description"`
+	DescriptionHTML string `bson:"description_html"`
 	FunctionName string `bson:"function_name"`
 	ParameterName string `bson:"parameter_name"`
 	InputType string `bson:"input_type"`

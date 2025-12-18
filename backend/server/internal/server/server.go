@@ -13,6 +13,7 @@ import (
 	"github.com/aavtic/fops/utils/fs"
 	"github.com/aavtic/fops/utils/logging"
 	"github.com/aavtic/fops/utils/templates"
+	"github.com/aavtic/fops/utils/markdown"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gin-contrib/cors"
@@ -27,7 +28,7 @@ const COLLECTION string = "problems"
 
 // TODO
 // Ensure that title is unique
-func processJSON(json database.AddProblemRequestType) database.DBAddProblemRequestType {
+func processJSON(json database.AddProblemRequestType, markdown_html string) database.DBAddProblemRequestType {
 	title := json.Title
 	slug_title := slug.Make(title)
 	// TODO:
@@ -39,6 +40,7 @@ func processJSON(json database.AddProblemRequestType) database.DBAddProblemReque
 		Title:         json.Title,
 		TitleSlug:     slug_title,
 		Description:   json.Description,
+		DescriptionHTML: markdown_html,
 		FunctionName:  json.FunctionName,
 		ParameterName: json.ParameterName,
 		InputType:     json.InputType,
@@ -59,8 +61,14 @@ func add_question_handler(db *database.Database) gin.HandlerFunc {
 		var json database.AddProblemRequestType
 		if c.Bind(&json) == nil {
 			// log.Printf("Got json: %v", json)
-			db_json := processJSON(json)
+			md := []byte(json.Description)
+			html := markdown.MDToHTML(md)
+
+			db_json := processJSON(json, string(html))
 			log.Println("PROCESSED JSON", db_json)
+
+			log.Println("HTML:", db_json.DescriptionHTML)
+
 			err := db.InsertOne(DATABASE, COLLECTION, db_json)
 			if err != nil {
 				log.Printf("error while inserting document to database: %v", err)
@@ -95,15 +103,17 @@ func get_question_details_handler(db *database.Database) gin.HandlerFunc {
 
 		log.Printf("DB Response: %v", db_response)
 		type ResponseJson struct {
-			ID           string `json:"id"`
-			Title        string `json:"title"`
-			Description  string `json:"description"`
-			CodeTemplate string `json:"code_template"`
+			ID           		string `json:"id"`
+			Title        		string `json:"title"`
+			Description  		string `json:"description"`
+			DescriptionHTML string `json:"description_html"`
+			CodeTemplate 		string `json:"code_template"`
 		}
 		var response ResponseJson
 		response.ID = db_response.ProblemId
 		response.Title = db_response.Title
 		response.Description = db_response.Description
+		response.DescriptionHTML = db_response.DescriptionHTML
 		response.CodeTemplate = db_response.CodeTemplate
 
 		log.Printf("Found Document: %v", response)
