@@ -1,7 +1,5 @@
-package database
+package models
 
-import (
-)
 
 // SAMPLE
 // {

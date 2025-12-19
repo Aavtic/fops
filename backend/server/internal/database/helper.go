@@ -1,5 +1,8 @@
 package database
 
+import "github.com/aavtic/fops/internal/database/models"
+
+
 type FilteredProblemData struct {
 	ProblemId string `json:"uid"`
 	Title string `json:"title"`
@@ -7,7 +10,7 @@ type FilteredProblemData struct {
 	Description string `json:"description"`
 }
 
-func FilterProblemData(data []DBProblemType) []FilteredProblemData {
+func FilterProblemData(data []models.DBProblemType) []FilteredProblemData {
 	var result []FilteredProblemData
 
 	for _, problem := range data {

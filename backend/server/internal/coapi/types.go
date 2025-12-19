@@ -3,7 +3,7 @@ package coapi
 
 import (
 	"encoding/json"
-	"github.com/aavtic/fops/internal/database"
+	"github.com/aavtic/fops/internal/database/models"
 )
 
 
@@ -25,7 +25,7 @@ type QuestionTemplate struct {
 		FunctionName string `json:"function_name"`
 		InputType string `json:"input_type"`
 		OutputType string `json:"output_type"`
-		InputOutput []database.InputOutput  `json:"input_output"`
+		InputOutput []models.InputOutput  `json:"input_output"`
 }
 
 // {
