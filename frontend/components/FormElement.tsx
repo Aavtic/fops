@@ -8,6 +8,19 @@ import { z } from "zod"
 import { Button } from "@/components/ui/button"
 import { useFieldArray, useFormContext } from "react-hook-form"
 
+
+import { apiPost } from '@/lib/http/client'
+import { RenderMarkdownEndpoint } from '@/lib/http/endpoints'
+
+import {
+  ButtonGroup,
+  ButtonGroupSeparator,
+} from "@/components/ui/button-group"
+
+import { useState, useEffect } from 'react'
+
+
+
 import { CreateProblemEndpoint } from '@/lib/http/endpoints'
 
 import {
@@ -31,6 +44,36 @@ import {
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
+
+
+function EditRenderButtonGroup(options: {action: React.Dispatch<React.SetStateAction<boolean>>, current: boolean}) {
+    const onActiveButtonClass = "bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-900 dark:text-gray-100 transition-colors";
+  return (
+    <ButtonGroup>
+
+      <Button 
+        type="button"
+        className={options.current ? onActiveButtonClass : ""}
+        variant="secondary" 
+        size="sm" 
+        onClick={() => options.action(true)}
+      >
+        Edit
+      </Button>
+
+      <ButtonGroupSeparator />
+      <Button 
+        type="button"
+        className={!options.current ? onActiveButtonClass : ""}
+        variant="secondary" 
+        size="sm" 
+        onClick={() => options.action(false)}
+      >
+        Preview
+      </Button>
+    </ButtonGroup>
+  )
+}
 
 
 function InputOutputButtonGroup() {
@@ -123,6 +166,24 @@ const FormSchema = z.object({
 
 
 export function InputForm() {
+    const [edit, setEdit] = useState<boolean>(true);
+    const [markdown, setMarkdown] = useState<string>("");
+    const [preview, setPreview] = useState<string>("Write some Markdown and click preview to view rendered output");
+
+    useEffect(() => {
+        if (!edit) {
+            setPreview("<code>Loading...</code>");
+            apiPost(RenderMarkdownEndpoint, {
+                markdown: markdown
+            })
+            .then(html => {
+                console.log('got response: ', html.html);
+                setPreview(html.html)
+            });
+        }
+
+    }, [edit]);
+
     const form = useForm<z.infer<typeof FormSchema>>({
         resolver: zodResolver(FormSchema),
         defaultValues: {
@@ -199,24 +260,51 @@ export function InputForm() {
                 />
 
 
-                <FormField control={form.control} name="description" render={({ field }) => (
+                <FormField
+                  control={form.control}
+                  name="description"
+                  render={({ field }) => (
                     <FormItem>
-                        <FormLabel className="text-sm sm:text-base font-semibold text-slate-700">Problem Description</FormLabel>
-                        <FormControl>
-                            <Textarea
-                                placeholder="Describe the problem in detail. You can use Markdown formatting for better readability..."
-                                className="resize-none min-h-24 sm:min-h-32 text-sm sm:text-base"
-                                {...field}
-                            />
-                        </FormControl>
-                        <FormDescription className="text-xs sm:text-sm text-slate-500">
-                            Provide a comprehensive description. Markdown formatting is supported.
-                        </FormDescription>
-                        <FormMessage />
-                    </FormItem>
-                )}
-                />
+                      <FormLabel className="text-sm sm:text-base font-semibold text-slate-700">
+                        Problem Description
+                      </FormLabel>
 
+                      <EditRenderButtonGroup action={setEdit} current={edit} />
+
+                        <FormControl>
+                          {edit ? (
+                            <Textarea
+                              placeholder="Describe the problem in detail. You can use Markdown formatting for better readability..."
+                              className="resize-none min-h-24 sm:min-h-[400px] text-sm sm:text-base w-full"
+                              {...field}
+                              onChange={(e) => {
+                                field.onChange(e);
+                                setMarkdown(e.target.value);
+                              }}
+                            />
+                          ) : (
+                            /* The key is adding min-w-0 to the wrapper to allow it to shrink below its content size */
+                            <div className="w-full min-w-0 overflow-hidden"> 
+                              <div className="h-[400px] w-full overflow-y-auto overflow-x-auto border-4 border-gray-500 dark:border-gray-700 p-4 rounded-md bg-white dark:bg-gray-800 box-border">
+                                <div
+                                  className="prose prose-gray dark:prose-invert max-w-none break-words whitespace-pre-wrap overflow-wrap-anywhere"
+                                  dangerouslySetInnerHTML={{ __html: preview }}
+                                />
+                              </div>
+                            </div>
+
+                          )}
+                        </FormControl>
+
+
+                      <FormDescription className="text-xs sm:text-sm text-slate-500">
+                        Provide a comprehensive description. Markdown formatting is supported.
+                      </FormDescription>
+
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 p-3 sm:p-4 bg-slate-50 rounded-lg border border-slate-200">
                     <FormField control={form.control} name="function_name" render={({ field }) => (

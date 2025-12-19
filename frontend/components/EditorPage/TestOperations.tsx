@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button"
 
 
 import React from 'react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 
 // This class string is for an elegant outline/ghost sub button
@@ -135,6 +135,7 @@ export interface TestOperationsProps {
     currentOperations: Operation
     setCurOp: React.Dispatch<React.SetStateAction<Operation|undefined>>;
     data: DataState | undefined
+    triggerEvent: any
 }
 
 // Defined *outside* of the main component's return statement:
@@ -172,14 +173,14 @@ const renderContent = (currentOperation: Operation, data: DataState | undefined)
 function renderResult(results: TestResults) {
     return (
         results.status === "Pass" ? (
-            renderPass(results)
+            <RenderPass pass={results}/>
         ) : results.status === "Fail" ? (
-            renderFail(results)
-        ) : renderURCodeErrorLOL(results)
+            RenderFail(results)
+        ) : RenderURCodeErrorLOL(results)
     )
 }
 
-function renderPass(pass: TestResultsPass) {
+function RenderPass({ pass }: { pass: TestResultsPass }) {
     const [currentCase, setCurrentCase] = useState<number>(-1);
     const average_time = pass.info.Pass.average_time;
     console.log(average_time);
@@ -255,7 +256,7 @@ function renderPass(pass: TestResultsPass) {
 }
 
 
-function renderFail(fail: TestResultsFail) {
+function RenderFail(fail: TestResultsFail) {
     const inputOutput = (title: "Input"|"Output"|"Expected", inputOutputClass: string) => { // NOTE: Added inputOutputClass as an argument
     return (
         <div className="bg-gray-50 p-4 rounded-lg border border-gray-400 mb-4">
@@ -304,7 +305,7 @@ function renderFail(fail: TestResultsFail) {
     )
 }
 
-function renderURCodeErrorLOL(error: TestResultsCodeError) {
+function RenderURCodeErrorLOL(error: TestResultsCodeError) {
     return (
         <>
 
@@ -331,10 +332,17 @@ function renderURCodeErrorLOL(error: TestResultsCodeError) {
     )
 }
 
-export default function TestOperations({currentOperations, setCurOp, data}: TestOperationsProps) {
+export default function TestOperations({currentOperations, setCurOp, data, triggerEvent}: TestOperationsProps) {
+    useEffect(() => {
+        if (currentOperations === Operation.ResultOp) {
+          triggerEvent();
+        }
+      }, [currentOperations, triggerEvent]);
+
     return (
-        <div className="min-h-screen flex flex-col">
-            <div className="py-5 px-5 flex space-x-4 overflow-x-auto pb-7 mb-4">
+        <div className="h-full flex flex-col"> 
+            {/* Navigation Section: flex-shrink-0 ensures this stays at the top */}
+            <div className="py-5 px-5 flex space-x-4 overflow-x-auto flex-shrink-0 border-b dark:border-slate-800">
                 <OperationButton name="results" onClickFn={() => setCurOp(Operation.ResultOp)} isCurOp={currentOperations === Operation.ResultOp}/>
                 <OperationButton name="test cases" onClickFn={() => setCurOp(Operation.TestCasesOp)} isCurOp={currentOperations === Operation.TestCasesOp}/>
                 <OperationButton name="solutions" onClickFn={() => setCurOp(Operation.SolutionsOp)} isCurOp={currentOperations === Operation.SolutionsOp}/>
@@ -342,10 +350,10 @@ export default function TestOperations({currentOperations, setCurOp, data}: Test
                 <OperationButton name="analysis" onClickFn={() => setCurOp(Operation.AnalysisOp)} isCurOp={currentOperations === Operation.AnalysisOp}/>
             </div>
 
-            <div className="flex-grow px-5 pb-5">
-            {
-                renderContent(currentOperations, data)
-            }
+            {/* Scrollable Content Section */}
+            {/* min-h-0 is essential here to allow the div to shrink and trigger the scrollbar */}
+            <div className="flex-grow overflow-y-auto min-h-0 px-5 py-5 scrollbar-gutter-stable">
+                {renderContent(currentOperations, data)}
             </div>
         </div>
     )

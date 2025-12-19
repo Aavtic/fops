@@ -13,6 +13,9 @@ import {
   ResizablePanelGroup,
 } from "@/components/ui/resizable"
 
+import { useRef } from "react";
+import { ImperativePanelHandle } from "react-resizable-panels";
+
 import { useState, useEffect } from 'react'
 
 
@@ -45,6 +48,15 @@ export default function EditorPage({problem_id, title, description_html, codeTem
         setOp(Operation.ResultOp);
     }, [result])
 
+    const panelRef = useRef<ImperativePanelHandle>(null);
+    const handleTriggerEvent = () => {
+        console.log("Here now");
+      if (panelRef.current) {
+        panelRef.current.resize(85); 
+      }
+    };
+
+
     const border_style = "m-2 p-2 rounded-xl border-2 border-cyan-800 overflow-hidden";
     return (
     <div className="">
@@ -61,12 +73,14 @@ export default function EditorPage({problem_id, title, description_html, codeTem
               </div>
             </ResizablePanel>
             <ResizableHandle className="flex-1 bg-black h-1.5" withHandle />
-            <ResizablePanel defaultSize={35} minSize={20}>
-              <div className={border_style}>
+            <ResizablePanel ref={panelRef} defaultSize={35} minSize={20}>
+              {/* Add h-full and flex flex-col to this wrapper */}
+              <div className={`${border_style} h-full flex flex-col`}>
                 <TestOperations 
                     currentOperations={op == undefined ? Operation.NoOp : op} 
                     setCurOp={setOp}
                     data={dataState}
+                    triggerEvent={handleTriggerEvent}
                 />
               </div>
             </ResizablePanel>
@@ -85,6 +99,7 @@ export default function EditorPage({problem_id, title, description_html, codeTem
                 setTestData={setResults}
                 testFn={TestCodeAPI}
                 runFn={() => console.log("UNIMPLEMENTED")}
+                // finallyFn = {}
             />
           </div>
         </ResizablePanel>
