@@ -5,9 +5,7 @@ import (
 	"log"
 
 	"github.com/aavtic/fops/internal/database"
-	"github.com/aavtic/fops/internal/database/models"
 	"github.com/aavtic/fops/internal/config"
-	"github.com/aavtic/fops/utils/templates"
 	"github.com/aavtic/fops/internal/handlers/auth"
 	problem_handler "github.com/aavtic/fops/internal/handlers/problem"
 	coapi_handler "github.com/aavtic/fops/internal/handlers/coapi"
@@ -15,8 +13,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/gin-contrib/cors"
-	"github.com/google/uuid"
-	"github.com/gosimple/slug"
 )
 
 
@@ -33,36 +29,6 @@ func NewServer(cfg *config.Config) *Server {
 const PORT int = 8080
 const DATABASE string = "fops"
 const COLLECTION string = "problems"
-
-// TODO
-// Ensure that title is unique
-func processJSON(json models.AddProblemRequestType, markdown_html string) models.DBAddProblemRequestType {
-	title := json.Title
-	slug_title := slug.Make(title)
-	// TODO:
-	// Make this language agnostic
-	python_template := templates.GeneratePythonTemplate(json.FunctionName, json.ParameterName, json.InputType, json.OutputType)
-	log.Println("created python template code:", python_template)
-	var db_json = models.DBAddProblemRequestType{
-		ProblemId:     uuid.New().String(),
-		Title:         json.Title,
-		TitleSlug:     slug_title,
-		Description:   json.Description,
-		DescriptionHTML: markdown_html,
-		FunctionName:  json.FunctionName,
-		ParameterName: json.ParameterName,
-		InputType:     json.InputType,
-		OutputType:    json.OutputType,
-		InputOutput:   json.InputOutput,
-		CodeTemplate:  python_template,
-	}
-
-	log.Println("Function name: ", json.FunctionName)
-	log.Println("Input name: ", json.ParameterName)
-	log.Println("Input Type : ", json.InputType)
-
-	return db_json
-}
 
 func (s *Server) SetupRouter(db *database.Database) *gin.Engine {
 	r := gin.Default()
