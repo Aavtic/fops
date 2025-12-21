@@ -176,6 +176,7 @@ export function InputForm() {
             apiPost(RenderMarkdownEndpoint, {
                 markdown: markdown
             })
+            .then(response => response.json())
             .then(html => {
                 console.log('got response: ', html.html);
                 setPreview(html.html)

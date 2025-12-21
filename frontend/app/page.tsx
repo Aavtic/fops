@@ -1,6 +1,17 @@
+"use client"
+
 import { apiFetch } from '@/lib/http/client'
 import { AllProblemEndpoint } from '@/lib/http/endpoints'
 import Link from 'next/link';
+
+import LoadingPage from '@/components/Loading/LoadingPage'
+import PleaseLogin from '@/components/auth/PleaseLogin'
+import { ErrorPage } from '@/components/Error/ErrorPage'
+
+import { useAuth } from '@/lib/utils/utils'
+
+import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation';
 
 
 export interface Problem {
@@ -65,21 +76,71 @@ function ProblemList(p_data:  {data: ProblemData}) {
   );
 }
 
+function ProblemsPage() {
+    const router = useRouter()
+    const [state, setState] = useState('loading');
+    const [data, setData] = useState<ProblemData>()
 
-export default async function Home() {
-    const response = await apiFetch(AllProblemEndpoint)
-    if (response.status === 200) {
-        const data: ProblemData = await response.json()
-        return (
-            <div>
-            <ProblemList  data={data}/>
-            </div>
-        );
-    } else {
-        return (
-            <div>
-            <h1>Oops. Error fetching data</h1>
-            </div>
-        );
+    useEffect(() => {
+        apiFetch(AllProblemEndpoint)
+        .then(response => {
+            if (!response.ok) {
+                setState('error');
+                return;
+            }
+            if (response.status === 200) {
+                return response.json()
+            } else {
+            }
+        })
+        .then(json => {
+            const data: ProblemData = json
+            setData(data)
+            setState('success')
+        })
+        .catch(err => {
+            console.log('ERROR: ', err);
+            setState('error')
+        })
+    }, [])
+
+    return (
+        (state === 'loading') ? (
+            <LoadingPage message="Loading Problems..." />
+        ) : (state === 'success') ? (
+            <ProblemList data={data!}/>
+        ) : (
+            <ErrorPage message="Something went wrong while fetching the information. Please check your connection and try again." onRetry={() => router.refresh()} />
+        )
+    )
+}
+
+export default function Home() {
+    const { loggedIn, loading } = useAuth();
+    // const router = useRouter();
+
+    // useEffect(() => {
+    //     if (loading) return;
+    //
+    //     if (!loggedIn) {
+    //         console.log('User not found after check, redirecting...');
+    //         router.replace("/login");
+    //     }
+    // }, [loading, loggedIn, router]);
+    //
+
+
+    if (loading) {
+        return <LoadingPage message="Verifying your session..." />;
     }
+
+    if (!loggedIn) {
+        return <PleaseLogin />
+    }
+
+    if (!loggedIn) {
+        return null; 
+    }
+
+    return <ProblemsPage />;
 }
