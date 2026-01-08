@@ -86,6 +86,7 @@ func (ph *ProblemHandler) Add_question_handler(db *database.Database) gin.Handle
 	return func(c *gin.Context) {
 		var json models.AddProblemRequestType
 		if c.Bind(&json) == nil {
+			problemRepo := database.NewProblemRepository(db, ph.cfg)
 			// log.Printf("Got json: %v", json)
 			md := []byte(json.Description)
 			html := markdown.MDToHTML(md)
@@ -95,7 +96,8 @@ func (ph *ProblemHandler) Add_question_handler(db *database.Database) gin.Handle
 
 			log.Println("HTML:", db_json.DescriptionHTML)
 
-			err := db.InsertOne(ph.cfg.DB.Database, ph.cfg.DB.ProblemsCollection, db_json)
+			err := problemRepo.CreateProblem(db_json)
+
 			if err != nil {
 				log.Printf("error while inserting document to database: %v", err)
 				c.JSON(http.StatusOK, gin.H{"status": "error"})

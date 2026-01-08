@@ -10,6 +10,7 @@ import (
 	problem_handler "github.com/aavtic/fops/internal/handlers/problem"
 	coapi_handler "github.com/aavtic/fops/internal/handlers/coapi"
 	markdown_handler "github.com/aavtic/fops/internal/handlers/markdown"
+	user_handler "github.com/aavtic/fops/internal/handlers/user"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gin-contrib/cors"
@@ -25,12 +26,12 @@ func NewServer(cfg *config.Config) *Server {
 	}
 }
 
-// ENV THIS
-const PORT int = 8080
+func (s *Server) SetupRouter(db *database.Database) *gin.Engine {
+	r := gin.Default()
 
-var corsConfig = cors.Config{
+	var corsConfig = cors.Config{
 			AllowOrigins: []string{
-				"http://localhost:3000",
+				fmt.Sprintf("http://%s:3000", s.Config.Host.HostIP),
 			},
 			AllowMethods: []string{
 					"GET", "POST", "PUT", "DELETE", "OPTIONS",
@@ -46,21 +47,18 @@ var corsConfig = cors.Config{
 			AllowCredentials: true,
 	} 
 
-
-func (s *Server) SetupRouter(db *database.Database) *gin.Engine {
-	r := gin.Default()
-
 	r.Use(cors.New(corsConfig))
 
 	authHandler := auth_handler.NewAuthHandler(&s.Config);
 	problemHandler := problem_handler.NewProblemHandler(&s.Config)
 	coapiHandler := coapi_handler.NewCoapiHandler(&s.Config)
 	markdownHandler := markdown_handler.NewMarkdownHandler()
+	userHandler := user_handler.NewUserHandler(&s.Config)
 
 	apiRoutes := r.Group("/api")
 	authRoutes := apiRoutes.Group("/auth")
 
-	dbRoutes := apiRoutes.Group("/db", authHandler.AuthMiddleware());
+	dbRoutes := apiRoutes.Group("/db");
 	markdownRoutes := apiRoutes.Group("/markdown", authHandler.AuthMiddleware());
 	testingRoutes := apiRoutes.Group("/coapi", authHandler.AuthMiddleware());
 
@@ -72,9 +70,12 @@ func (s *Server) SetupRouter(db *database.Database) *gin.Engine {
 	authRoutes.POST("/refresh", authHandler.Refresh(db))
 
 	// Database routes
-	dbRoutes.GET("/problem/:title_slug", problemHandler.Get_question_details_handler(db))
-	dbRoutes.GET("/problem", problemHandler.Get_all_problems(db));
-	dbRoutes.POST("/problem", problemHandler.Add_question_handler(db))
+	dbRoutes.GET("/problem/:title_slug", problemHandler.Get_question_details_handler(db), authHandler.AuthMiddleware())
+	dbRoutes.GET("/problem", problemHandler.Get_all_problems(db), authHandler.AuthMiddleware());
+	dbRoutes.POST("/problem", problemHandler.Add_question_handler(db), authHandler.AuthMiddleware())
+
+	// User DB routes
+	dbRoutes.GET("/user/:user_id", userHandler.GetUserDetails(db))
 
 	// Markdown routes
 	markdownRoutes.POST("/render", markdownHandler.Render_custom_markdown())
@@ -90,6 +91,11 @@ func (s *Server) Run() {
 	defer db.Disconnect()
 	r := s.SetupRouter(db)
 
-	log.Printf("Server up and running on port :%d", PORT)
-	r.Run(":" + fmt.Sprintf("%d", PORT))
+	host := s.Config.Host.HostIP
+	port := s.Config.Host.HostPort
+
+	server_address := fmt.Sprintf("%s:%d", host, port)
+
+	log.Printf("Server up and running on port :%d", port)
+	r.Run(server_address)
 }
