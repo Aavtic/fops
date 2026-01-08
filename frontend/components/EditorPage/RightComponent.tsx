@@ -77,8 +77,6 @@ export default function RightComponent({problem_id, codeTemplate, setTestData, t
 
     return (
     <div className="h-screen bg-white">
-        <h1 className="italic text-4xl">Editor</h1>
-        
         <CodeEditor code={codeContent} setContent={setCodeContent} />
 
         <div>

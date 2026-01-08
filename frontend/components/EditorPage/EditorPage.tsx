@@ -56,54 +56,92 @@ export default function EditorPage({problem_id, title, description_html, codeTem
       }
     };
 
+  const panel_wrapper = "h-full w-full bg-white dark:bg-[#0a0a0a] overflow-hidden flex flex-col";
+  
+  // Style for the vertical handle (Horizontal separator)
+  const vertical_handle = "flex w-[6px] items-center justify-center bg-gray-200 dark:bg-zinc-800 hover:bg-blue-500/50 transition-colors cursor-col-resize";
+  
+  // Style for the horizontal handle (Vertical separator)
+  const horizontal_handle = "flex h-[6px] items-center justify-center bg-gray-200 dark:bg-zinc-800 hover:bg-blue-500/50 transition-colors cursor-row-resize";
 
-    const border_style = "m-2 p-2 rounded-xl border-2 border-cyan-800 overflow-hidden";
-    return (
-    <div className="">
+  // The small "pill" bar inside the handle
+  const grip_bar_vertical = "w-[2px] h-8 bg-gray-400 dark:bg-zinc-600 rounded-full";
+  const grip_bar_horizontal = "h-[2px] w-8 bg-gray-400 dark:bg-zinc-600 rounded-full";
+
+  return (
+    <div className="h-screen w-screen bg-gray-100 dark:bg-[#020202] text-slate-900 dark:text-slate-200 overflow-hidden">
       <ResizablePanelGroup
         direction="horizontal"
-        className="w-screen h-screen"
+        className="h-full w-full"
       >
-        {/* LEFT SIDE: vertical stack */}
-        <ResizablePanel defaultSize={50}>
+        {/* LEFT SIDE: Problem & Tests */}
+        <ResizablePanel defaultSize={45} minSize={30}>
           <ResizablePanelGroup direction="vertical">
-            <ResizablePanel defaultSize={65}>
-              <div className={border_style + " "}>
-                <LeftComponent title={title} description_html={description_html} />
+            
+            {/* Top Left: Problem Description */}
+            <ResizablePanel defaultSize={60} minSize={20}>
+              <div className={`${panel_wrapper} border-b border-gray-200 dark:border-white/5`}>
+                <div className="flex items-center h-10 px-4 bg-gray-50 dark:bg-zinc-900/50 border-b border-gray-200 dark:border-white/5 text-xs font-medium text-slate-500 uppercase tracking-wider">
+                  Description
+                </div>
+                <div className="flex-1 overflow-hidden">
+                  <LeftComponent title={title} description_html={description_html} />
+                </div>
               </div>
             </ResizablePanel>
-            <ResizableHandle className="flex-1 bg-black h-1.5" withHandle />
-            <ResizablePanel ref={panelRef} defaultSize={35} minSize={20}>
-              {/* Add h-full and flex flex-col to this wrapper */}
-              <div className={`${border_style} h-full flex flex-col`}>
-                <TestOperations 
-                    currentOperations={op == undefined ? Operation.NoOp : op} 
+
+            {/* Visible Horizontal Handle with Grip Bar */}
+            <ResizableHandle className={horizontal_handle}>
+                <div className={grip_bar_horizontal}></div>
+            </ResizableHandle>
+
+            {/* Bottom Left: Test Console */}
+            <ResizablePanel ref={panelRef} defaultSize={40} minSize={10}>
+              <div className={panel_wrapper}>
+                <div className="flex items-center h-10 px-4 bg-gray-50 dark:bg-red-900/50 border-b border-gray-200 dark:border-white/5 text-xs font-medium text-slate-500 uppercase tracking-wider">
+                  Test Console
+                </div>
+                <div className="flex-1 overflow-hidden">
+                  <TestOperations 
+                    currentOperations={op === undefined ? Operation.NoOp : op} 
                     setCurOp={setOp}
                     data={dataState}
                     triggerEvent={handleTriggerEvent}
-                />
+                  />
+                </div>
               </div>
             </ResizablePanel>
           </ResizablePanelGroup>
         </ResizablePanel>
 
-        {/* Handle between LEFT + RIGHT */}
-        <ResizableHandle className="bg-black w-1.5" withHandle />
+        {/* Visible Vertical Divider with Grip Bar */}
+        <ResizableHandle className={vertical_handle}>
+            <div className={grip_bar_vertical}></div>
+        </ResizableHandle>
 
-        {/* RIGHT SIDE */}
-        <ResizablePanel>
-          <div className={border_style}>
-            <RightComponent 
+        {/* RIGHT SIDE: Code Editor */}
+        <ResizablePanel defaultSize={55} minSize={30}>
+          <div className={panel_wrapper}>
+            <div className="flex items-center justify-between h-10 px-4 bg-gray-50 dark:bg-zinc-900/50 border-b border-gray-200 dark:border-white/5">
+              <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">Solution</span>
+              <div className="flex gap-2">
+                 <div className="w-2 h-2 rounded-full bg-red-500/50"></div>
+                 <div className="w-2 h-2 rounded-full bg-yellow-500/50"></div>
+                 <div className="w-2 h-2 rounded-full bg-green-500/50"></div>
+              </div>
+            </div>
+            <div className="flex-1">
+              <RightComponent 
                 problem_id={problem_id}
-                codeTemplate={code === undefined ? ("LOL THIS IS NOT THERE") : code}
+                codeTemplate={code === undefined ? "/* Code template missing */" : code}
                 setTestData={setResults}
                 testFn={TestCodeAPI}
-                runFn={() => console.log("UNIMPLEMENTED")}
-                // finallyFn = {}
-            />
+                runFn={() => console.log("RUNNING...")}
+              />
+            </div>
           </div>
         </ResizablePanel>
       </ResizablePanelGroup>
     </div>
-    )
+  );
 }

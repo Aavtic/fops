@@ -208,6 +208,7 @@ export function InputForm() {
                 "Content-Type": "application/json",
             },
             body: JSON.stringify(data),
+            credentials: "include"
         }).then((response) => response.json())
             .then((json) => {
                 console.log('json is ', json);
