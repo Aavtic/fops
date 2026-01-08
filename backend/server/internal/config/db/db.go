@@ -11,6 +11,8 @@ type DBConfig struct {
 	Database           string
 	ProblemsCollection string
 	UsersCollection    string
+	UserActivityCollection string
+	UserSubmissionsCollection string
 	ConnectionString   string
 }
 
@@ -29,6 +31,14 @@ func LoadDBConfig() DBConfig {
 		log.Fatalf("Value not present in env: %s", "PROBLEMS_COLLECTION")
 	}
 
+	if _, exist := os.LookupEnv("USER_ACTIVITY_COLLECTION"); !exist {
+		log.Fatalf("Value not present in env: %s", "USER_ACTIVITY_COLLECTION")
+	}
+
+	if _, exist := os.LookupEnv("USER_SUBMISSIONS_COLLECTION"); !exist {
+		log.Fatalf("Value not present in env: %s", "USER_SUBMISSIONS_COLLECTION")
+	}
+
 	if _, exist := os.LookupEnv("CONNECTION_STRING"); !exist {
 		log.Fatalf("Value not present in env: %s", "CONNECTION_STRING")
 	}
@@ -39,12 +49,16 @@ func LoadDBConfig() DBConfig {
 	database := os.Getenv("MONGO_DATABASE")
 	problems_collection := os.Getenv("PROBLEMS_COLLECTION")
 	users_collection := os.Getenv("USERS_COLLECTION")
+	user_activity_collection := os.Getenv("USER_ACTIVITY_COLLECTION")
+	user_submissions_collection := os.Getenv("USER_SUBMISSIONS_COLLECTION")
 	connection_string := os.Getenv("CONNECTION_STRING")
 
 	return DBConfig{
 		Database:           database,
 		ProblemsCollection: problems_collection,
 		UsersCollection: 		users_collection,
+		UserActivityCollection: user_activity_collection,
+		UserSubmissionsCollection: user_submissions_collection,
 		ConnectionString: 	connection_string,
 	}
 }
