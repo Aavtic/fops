@@ -72,7 +72,7 @@ func (ah *AuthHandler) Signup(db *database.Database) gin.HandlerFunc {
 			}
 
 			// create user
-			err = db.InsertOne(ah.cfg.DB.Database, ah.cfg.DB.UsersCollection, userModel)
+			err = database.InsertOne(db, ah.cfg.DB.Database, ah.cfg.DB.UsersCollection, userModel)
 
 			if err != nil {
 				c.JSON(http.StatusInternalServerError, gin.H{"status": "Error writing data to database"})
@@ -142,7 +142,7 @@ func (auth *AuthHandler) Login(db *database.Database) gin.HandlerFunc {
 			}
 
 			// Create token
-			tokenString, err := createToken(user.Username, user.Email, auth.cfg.Auth.SECRET)
+			tokenString, err := createToken(user.UserID, user.Username, user.Email, auth.cfg.Auth.SECRET)
 			if err != nil {
 					c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not generate token"})
 					log.Printf("ERROR: Could not create token due to %s", err)
@@ -155,7 +155,7 @@ func (auth *AuthHandler) Login(db *database.Database) gin.HandlerFunc {
 			 		tokenString,      // value
 			 		60*60*24,         // maxAge (seconds)
 			 		"/",              // path
-			 		"localhost",      // domain (dev only)
+			 		auth.cfg.Host.HostIP,// domain (dev only)
 			 		false,            // secure (true in prod)
 			 		true,             // httpOnly
 			 )
@@ -189,51 +189,56 @@ func (ah *AuthHandler) Me(db *database.Database) gin.HandlerFunc {
 		log.Println("Token from cookie:", token)
 
 		// Verify JWT
-		if err := verifyToken(token, ah.cfg.Auth.SECRET); err != nil {
+		if _, err := verifyToken(token, ah.cfg.Auth.SECRET); err != nil {
 			c.Status(http.StatusUnauthorized)
 			return
 		}
 
-		c.Status(http.StatusOK)
+		claims, err := verifyToken(token, ah.cfg.Auth.SECRET)
+		if err != nil {
+			c.AbortWithStatus(http.StatusUnauthorized)
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{"user_id": claims["user_id"], "username": claims["username"]})
 	}
 }
-
 
 func (*AuthHandler) Refresh(db *database.Database) gin.HandlerFunc {
 	return func(c *gin.Context) {
 	}
 }
 func (ah *AuthHandler) AuthMiddleware() gin.HandlerFunc {
-    return func(c *gin.Context) {
+	return func(c *gin.Context) {
 
-        var token string
+		var token string
 
-        // 1️⃣ Try cookie first (preferred)
-        if cookie, err := c.Cookie("auth"); err == nil {
-            token = cookie
-        }
+		if cookie, err := c.Cookie("auth"); err == nil {
+			token = cookie
+		}
 
-        // 2️⃣ Fallback to Authorization header (optional)
-        if token == "" {
-            authHeader := c.GetHeader("Authorization")
-            if strings.HasPrefix(authHeader, "Bearer ") {
-                token = strings.TrimPrefix(authHeader, "Bearer ")
-            }
-        }
+		if token == "" {
+			authHeader := c.GetHeader("Authorization")
+			if strings.HasPrefix(authHeader, "Bearer ") {
+				token = strings.TrimPrefix(authHeader, "Bearer ")
+			}
+		}
 
-        if token == "" {
-            c.AbortWithStatus(http.StatusUnauthorized)
-            return
-        }
+		if token == "" {
+			c.AbortWithStatus(http.StatusUnauthorized)
+			return
+		}
 
-        err := verifyToken(token, ah.cfg.Auth.SECRET)
-        if err != nil {
-            c.AbortWithStatus(http.StatusUnauthorized)
-            return
-        }
+		claims, err := verifyToken(token, ah.cfg.Auth.SECRET)
+		if err != nil {
+			c.AbortWithStatus(http.StatusUnauthorized)
+			return
+		}
 
-        // c.Set("user", claims)
+		c.Set("user_id", claims["user_id"])
+		c.Set("username", claims["username"])
+		c.Set("email", claims["email"])
 
-        c.Next()
-    }
+		c.Next()
+	}
 }
