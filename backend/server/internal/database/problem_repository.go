@@ -1,92 +1,31 @@
 package database;
 
 import (
-	"log"
-	"context"
-
-	"go.mongodb.org/mongo-driver/v2/mongo"
+	"github.com/aavtic/fops/internal/config"
 	"go.mongodb.org/mongo-driver/v2/bson"
-	"go.mongodb.org/mongo-driver/v2/mongo/options"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-type D = bson.D
-type M = bson.M
-var NO_DOCUMENTS = mongo.ErrNoDocuments
-
-type Database struct {
-	connection *mongo.Client
+type ProblemRepository struct {
+		cfg *config.Config
+		db *Database
 }
 
-func Connect(uri string) *Database {
-	client, err := mongo.Connect(options.Client().ApplyURI(uri))
-	if err != nil {
-		log.Fatalf("Could not connect to mongodb server due to %s", err)
-	}
-
-	return &Database{
-		client,
+func NewProblemRepository(db *Database, cfg *config.Config) *ProblemRepository {
+	return &ProblemRepository{
+		cfg: cfg,
+		db: db,
 	}
 }
 
-func (db *Database) GetCollection(database, collection string) (*mongo.Collection) {
-	return db.connection.Database(database).Collection(collection)
+func (pr *ProblemRepository) CreateProblem(db_json any) error {
+	return InsertOne(pr.db, pr.cfg.DB.ProblemsCollection, pr.cfg.DB.ProblemsCollection, db_json)
 }
 
-func (db *Database) InsertOne(database, collection string, document any) (error) {
-	coll := db.GetCollection(database, collection)
-	_, err := coll.InsertOne(context.TODO(), document)
-	return err;
-}
-
-// Defer me
-func (db *Database) Disconnect() {
-	if err := db.connection.Disconnect(context.TODO()); err != nil {
-		panic(err);
+func (pr *ProblemRepository) GetProblemsByIds(ids []string, result any) error {
+	filter := bson.M {
+		"uid": bson.M {
+			"$in": ids,
+		},
 	}
-}
-
-func NewID() primitive.ObjectID {
-	return primitive.NewObjectID()
-}
-
-func NewIDFromHex(hex string) (primitive.ObjectID, error){
-	return primitive.ObjectIDFromHex(hex)
-}
-
-func FindOneDocument(db *Database, database, collection string, filter any, result any) error {
-	coll := db.GetCollection(database, collection)
-	res := coll.FindOne(context.TODO(), filter).Decode(result)
-	return res;
-}
-
-func CheckDocumentExists(db *Database, database, collection string, filter any) (bool, error) {
-	var result bson.M
-
-	coll := db.GetCollection(database, collection)
-	err := coll.FindOne(context.TODO(), filter, options.FindOne()).Decode(&result)
-
-	log.Println("result: ", result)
-
-	if err != nil {
-			log.Println("error: ", err)
-			if err == mongo.ErrNoDocuments {
-				return false, nil
-			} else {
-				return false, err
-			}
-	} 
-	return true, nil
-}
-
-
-func FindAllDocuments(db *Database, database, collection string, filter any, results any) error {
-	coll := db.GetCollection(database, collection)
-	cursor, err := coll.Find(context.TODO(), bson.M{})
-	defer cursor.Close(context.Background())
-	if err != nil {
-		return err;
-	}
-
-	return cursor.All(context.TODO(), results)
+	return FindAllDocuments(pr.db, pr.cfg.DB.Database, pr.cfg.DB.ProblemsCollection, filter, result)
 }
