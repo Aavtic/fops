@@ -2,8 +2,9 @@ package user
 
 import (
 	"log"
-	"net/http"
+	"time"
 	"slices"
+	"net/http"
 
 	"github.com/aavtic/fops/internal/database"
 	"github.com/aavtic/fops/internal/database/models"
@@ -128,4 +129,53 @@ func intoProblemBrief(submissions []models.UserSubmissions, problems []models.DB
 	// Time wise order Order
 	slices.Reverse(result)
 	return result
+}
+
+func (uh *UserHandler) GetLeaderboard(db *database.Database) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		userRepo := database.NewUserRepository(db, uh.cfg)
+		activityRepo := database.NewUserActivityRepository(db, uh.cfg)
+
+		var all_activity []models.UserActivity
+		err := activityRepo.GetUsersActivity(&all_activity)
+		if err != nil {
+			log.Println("ERROR: Could not get all user activity due to: ", err)
+			c.Status(http.StatusInternalServerError)
+			return
+		}
+
+		type (
+			LeaderboardMember struct {
+				Username string `json:"username"`
+				UserId	 string `json:"user_id"`
+				Score		 uint64 `json:"score"`
+				Since    time.Time `json:"since"`
+			}
+		)
+
+		var leaderboard []LeaderboardMember
+
+		slices.SortFunc(all_activity, func (a models.UserActivity, b models.UserActivity) int {
+			return int(b.UserScore) - int(a.UserScore)
+		})
+
+		for _, activity := range all_activity {
+			var user models.User
+			err := userRepo.GetUserById(activity.UserID, &user)
+			if err != nil { 
+				log.Println("ERROR: Could not lookup user due to: ", err)
+				c.Status(http.StatusInternalServerError)
+				return
+			}
+
+			leaderboard = append(leaderboard, LeaderboardMember {
+				Username: user.Username,
+				UserId: 	user.UserID,
+				Score: 		activity.UserScore,
+				Since: 		user.CreatedAt,
+			})
+		}
+
+		c.JSON(http.StatusOK, leaderboard)
+	}
 }

@@ -277,7 +277,9 @@ func getUserGlobalPerc(user_score uint64, all_scores []uint64) float32 {
 
 	if len(all_scores) == 0 {
 		return 0
-	} 
+	}
+
+	log.Println(below_me, len(all_scores))
 
 	return float32(below_me) / float32(len(all_scores)) * 100
 }

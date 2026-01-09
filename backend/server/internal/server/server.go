@@ -76,6 +76,7 @@ func (s *Server) SetupRouter(db *database.Database) *gin.Engine {
 
 	// User DB routes
 	dbRoutes.GET("/user/:user_id", userHandler.GetUserDetails(db))
+	dbRoutes.GET("/user/leaderboard", userHandler.GetLeaderboard(db))
 
 	// Markdown routes
 	markdownRoutes.POST("/render", markdownHandler.Render_custom_markdown())

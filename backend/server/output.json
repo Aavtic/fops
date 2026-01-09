@@ -1,9 +1,1 @@
-{
-    "status": "URCodeErrorLOL",
-    "info": 
-        {
-            "URCodeErrorLOL": {
-                "error": "No class named Solution found"
-            }
-        }
-}
+{"status": "Pass", "info": {"Pass": {"execution_time": 1.6, "average_time": 0.006666666666666667, "Pass": [{"expected": "False", "got": "False", "input": "2", "ms": 0.02}, {"expected": "False", "got": "False", "input": "4", "ms": 0.0}, {"expected": "True", "got": "True", "input": "5", "ms": 0.0}]}}}

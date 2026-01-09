@@ -50,6 +50,14 @@ const Navbar = () => {
               >
                 Problems
               </Link>
+
+              <Link 
+                href="/leaderboard" 
+                className="text-sm font-medium text-slate-600 hover:text-green-600 transition-colors"
+              >
+                Leaderboard
+              </Link>
+
               <Link 
                 href="/create/problem" 
                 className="text-sm font-medium text-slate-600 hover:text-red-500 transition-colors"

@@ -9,3 +9,4 @@ export const SignUpEndpoint = `http://${HOST}:${PORT}/api/auth/signup`
 export const LoginEndpoint = `http://${HOST}:${PORT}/api/auth/login`
 export const MeEndpoint = `http://${HOST}:${PORT}/api/auth/me`
 export const GetUserDetailsEndpoint = `http://${HOST}:${PORT}/api/db/user/{}`
+export const GetLeaderboardEndpoint = `http://${HOST}:${PORT}/api/db/user/leaderboard`
