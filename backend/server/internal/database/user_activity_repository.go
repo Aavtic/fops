@@ -33,3 +33,7 @@ func (repo *UserActivity) CreateUserActivity(user_activity models.UserActivity) 
 func (repo *UserActivity) UpdateUserActivity(filter, update any) error {
 	return UpdateOne(repo.db, repo.cfg.DB.Database, repo.cfg.DB.UserActivityCollection, filter, update)
 }
+
+func (repo *UserActivity) GetUsersActivity(result any) error {
+	return FindAllDocuments(repo.db, repo.cfg.DB.Database, repo.cfg.DB.UserActivityCollection, bson.M{}, result)
+}

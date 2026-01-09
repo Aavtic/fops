@@ -38,7 +38,7 @@ func (ss submissionStatus) toString() string {
 		return "fail"
 
 	case submissionAttempted:
-		return "attempted"
+		return "attempt"
 	default:
 		return "invalid"
 	}
@@ -60,10 +60,7 @@ func (ch *CoapiHandler) Test_code_handler(db *database.Database) gin.HandlerFunc
 		var request coapi.TestQuestionRequest
 		if c.Bind(&request) == nil {
 			var response models.DBProblemType
-			log.Println("ID: ", request.ID)
-			log.Println("Request: ", request)
 			id := request.ID
-			log.Printf("ID: %v", id)
 			filter := database.M{"uid": id}
 			err := database.FindOneDocument(db, ch.cfg.DB.Database, ch.cfg.DB.ProblemsCollection, filter, &response)
 			if err != nil {
@@ -71,7 +68,6 @@ func (ch *CoapiHandler) Test_code_handler(db *database.Database) gin.HandlerFunc
 				c.JSON(http.StatusBadRequest, gin.H{"error": "Could not find problem with that id. Please refer https://github.com/aavtic/fops"})
 				return
 			}
-			log.Printf("SUCCESS: Found document: %v\n", response)
 
 			question_template := coapi.QuestionTemplate{
 				ID:           response.ProblemId,
@@ -160,6 +156,10 @@ func TrackProgress(db *database.Database, cfg *config.Config, userId, problemId 
 
 	if !exists {
 		userActivity := NewUserActivity(userId)
+		if submissionStatus == submissionPass {
+			userActivity.UserScore = 10
+			userActivity.UserSolvedProblems = 1
+		}
 		err = userActivityRepo.CreateUserActivity(userActivity)
 
 		if err != nil {
@@ -182,17 +182,45 @@ func TrackProgress(db *database.Database, cfg *config.Config, userId, problemId 
 			log.Printf("ERROR: Could not get user activity due to: %v\n", err)
 		}
 
-		filter := bson.D{{"user_id", userActivity.UserID}}
-		update := bson.D{
-			{"$set", bson.D{{"user_rank", "Almighty"}}},
-			{"$set", bson.D{{"user_score", 67}}},
-			{"$set", bson.D{{"user_global_score", 6967}}},
-			{"$set", bson.D{{"user_solved_problems", 369}}},
-		}
-		err = userActivityRepo.UpdateUserActivity(filter, update)
+		if submissionStatus == submissionPass {
+			var submissions []models.UserSubmissions
+			userSubmissionRepo.GetUserProblemSubmissions(userActivity.UserActivityId, problemId, &submissions)
 
-		if err != nil {
-			log.Printf("ERROR: Could not update user activity due to: %v\n", err)
+			var previouslyCompleted = false
+			for _, submission := range submissions {
+				log.Println(submission.SubmissionStatus, submissionStatus.toString(), submission.SubmissionStatus == submissionStatus.toString())
+				if submission.SubmissionStatus == submissionStatus.toString() {
+					previouslyCompleted = true
+					break
+				}
+			}
+
+			log.Println(previouslyCompleted)
+
+			if !previouslyCompleted {
+				var usersActivities []models.UserActivity
+				err := userActivityRepo.GetUsersActivity(&usersActivities)
+				if err != nil {
+					log.Printf("ERROR: Could not get user activity due to: %v\n", err)
+				}
+
+				var scores []uint64
+				for _, activity := range usersActivities {
+					scores = append(scores, activity.UserScore)
+				}
+
+				global_perc := getUserGlobalPerc(userActivity.UserScore, scores)
+
+				filter := bson.D{{"user_id", userActivity.UserID}}
+				update := bson.D{
+					{"$set", bson.D{{"user_rank", "Almighty"}, {"user_global_score", global_perc}}},
+					{"$inc", bson.D{{"user_score", 10}, {"user_solved_problems", 1}}},
+				}
+				err = userActivityRepo.UpdateUserActivity(filter, update)
+				if err != nil {
+					log.Printf("ERROR: Could not update user activity due to: %v\n", err)
+				}
+			}
 		}
 
 		submission := NewUserSubmissions(userActivity.UserActivityId, problemId, submissionStatus)
@@ -200,10 +228,6 @@ func TrackProgress(db *database.Database, cfg *config.Config, userId, problemId 
 
 		if err != nil {
 			log.Printf("ERROR: Could not update user submission due to: %v\n", err)
-		}
-
-		if err != nil {
-			log.Printf("ERROR: Could not update user activity due to: %v\n", err)
 		}
 	}
 }
@@ -222,10 +246,10 @@ func NewUserActivity(user_id string) models.UserActivity {
 	return models.UserActivity {
 		UserActivityId: uuid.New().String(),
 		UserID: user_id,
-		UserRank: "OverAchiever",
-		UserScore: 69,
-		UserGlobalRank: 6969,
-		UserSolvedProblems: 120,
+		UserRank: "Rookie",
+		UserScore: 0,
+		UserGlobalRank: 0,
+		UserSolvedProblems: 0,
 		CreatedAt: time.Now().UTC(),
 	}
 }
@@ -243,3 +267,17 @@ func intoSubmissionStatus(stat coapi.ResponseStatus) submissionStatus {
 	}
 }
 
+func getUserGlobalPerc(user_score uint64, all_scores []uint64) float32 {
+	below_me := 0
+	for _, score := range all_scores {
+		if score < user_score {
+			below_me += 1
+		}
+	}
+
+	if len(all_scores) == 0 {
+		return 0
+	} 
+
+	return float32(below_me) / float32(len(all_scores)) * 100
+}

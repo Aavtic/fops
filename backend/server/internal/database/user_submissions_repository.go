@@ -25,3 +25,7 @@ func (repo *UserSubmissions) GetUserSubmissionsById(activity_id string, submissi
 func (repo *UserSubmissions) CreateUserSubmission(user_submission models.UserSubmissions) error {
 	return InsertOne(repo.db, repo.cfg.DB.Database, repo.cfg.DB.UserSubmissionsCollection, user_submission)
 }
+
+func (repo *UserSubmissions) GetUserProblemSubmissions(activity_id, problemId string, submissions any) error {
+	return FindAllDocuments(repo.db, repo.cfg.DB.Database, repo.cfg.DB.UserSubmissionsCollection, bson.M{"user_activity_id": activity_id, "problem_id": problemId}, submissions)
+}

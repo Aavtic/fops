@@ -10,7 +10,7 @@ type UserActivity struct {
 	UserID 			 				string 						`json:"user_id" bson:"user_id"`
 	UserRank						string 						`json:"user_rank" bson:"user_rank"`
 	UserScore						uint64						`json:"user_score" bson:"user_score"`
-	UserGlobalRank			uint64						`json:"user_global_rank" bson:"user_global_rank"`
+	UserGlobalRank			float32 					`json:"user_global_rank" bson:"user_global_rank"`
 	UserSolvedProblems 	uint64 						`json:"user_solved_problems" bson:"user_solved_problems"`
 	CreatedAt    			 	time.Time         `json:"created_at" bson:"created_at"`
 }

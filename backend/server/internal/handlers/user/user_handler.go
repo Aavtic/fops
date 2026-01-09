@@ -97,7 +97,7 @@ func (uh *UserHandler) GetUserDetails(db *database.Database) gin.HandlerFunc {
 			UserRank: 	user_activity.UserRank,
 			UserScore: 	user_activity.UserScore,
 			UserGlobalRank: user_activity.UserGlobalRank,
-			UserSolvedProblems: user_activity.UserGlobalRank,
+			UserSolvedProblems: user_activity.UserSolvedProblems,
 			SolvedProblemsList: solved_problems_list,
 		}
 
