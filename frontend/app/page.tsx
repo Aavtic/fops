@@ -27,12 +27,39 @@ export interface ProblemData {
 
 function ProblemList(p_data:  {data: ProblemData}) {
     const data = p_data.data;
+
     return (
-    <div className="max-w-4xl mx-auto p-6 bg-gray-50 min-h-screen">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Coding Challenges</h1>
-        <p className="text-gray-500 mt-2">Master your logic with these fundamental problems.</p>
+
+<div className="max-w-4xl mx-auto p-6 bg-gray-50 min-h-screen">
+      
+      {/* CONTAINER: 
+          1. 'flex flex-col md:flex-row': Stacks on mobile, Side-by-side on desktop
+          2. 'items-center': Vertically centers the text with the image
+          3. 'gap-6': Adds space between the image and text
+          4. 'mb-8': Bottom margin for the whole group
+      */}
+      <div className="flex flex-col md:flex-row items-center gap-6 mb-8">
+        
+        {/* GIF Section */}
+        {/* shrink-0 prevents the image from getting squashed if text is long */}
+        <div className="shrink-0">
+          <img 
+            src="3d-inequality.gif" 
+            alt="Coding Animation" 
+            // I changed h-80 to h-32 so it matches the text height better
+            className="h-32 w-auto rounded-xl shadow-sm bg-white" 
+          />
+        </div>
+
+        {/* Text Section */}
+        <div className="text-center md:text-left">
+          <h1 className="text-3xl font-bold text-gray-900">Coding Challenges</h1>
+          <p className="text-gray-500 mt-2">Master your logic with these fundamental problems.</p>
+        </div>
+
       </div>
+
+      {/* The rest of your content (challenges list) would go here */}
 
       <div className="space-y-4">
         {data.problems.map((problem) => (

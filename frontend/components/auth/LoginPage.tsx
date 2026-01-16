@@ -60,7 +60,7 @@ export default function LoginPage() {
           {/* LEFT SIDE: GIF Image */}
           <div className="w-full md:w-1/2 h-48 md:h-auto relative">
             <img 
-              src="3d-techny.gif" 
+              src="3d-lock.gif" 
               alt="Login Visual" 
               className="w-full h-full object-cover"
             />
