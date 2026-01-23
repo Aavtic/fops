@@ -43,7 +43,7 @@ jobs:
           docker push $REGISTRY/$IMAGE_NAME:latest
           docker push $REGISTRY/$IMAGE_NAME:${{ github.sha }}
 
-      # ---------- DEPLOY ----------
+  # ---------- DEPLOY ----------
       - name: Setup SSH
         run: |
           set -x
@@ -54,15 +54,25 @@ jobs:
           echo "Scanning SSH host key..."
           ssh-keyscan -T 5 -H ${{ secrets.DO_HOST }} >> ~/.ssh/known_hosts || \
             echo "ssh-keyscan failed, continuing anyway"
-                                    
+
       - name: Deploy
         run: |
-          IMAGE="ghcr.io/aavtic/fops:latest"
+          # Construct the full image URL using the workflow env vars
+          # This ensures you are pulling exactly what you just built
+          IMAGE="$REGISTRY/$IMAGE_NAME:latest"
           CONTAINER="app"
           
-          # Updated to use secrets for User and Host
+          echo "Deploying $IMAGE to remote server..."
+
+          # The variables $IMAGE and $CONTAINER are expanded locally 
+          # before being sent to the remote server because we didn't quote 'EOF'
           ssh ${{ secrets.DO_USER }}@${{ secrets.DO_HOST }} << EOF
-            docker pull ${IMAGE}
-            docker rm -f ${CONTAINER} || true
-            docker run -d --name ${CONTAINER} ${IMAGE}
+            set -e
+            
+            # Optional: If the package is Private, you must docker login here first
+            # echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            
+            docker pull $IMAGE
+            docker rm -f $CONTAINER || true
+            docker run -d --name $CONTAINER $IMAGE
           EOF
