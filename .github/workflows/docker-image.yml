@@ -1,4 +1,4 @@
-name: Build and Push Docker Image
+name: Build, Push and Deploy
 
 on:
   push:
@@ -9,7 +9,7 @@ env:
   REGISTRY: ghcr.io
 
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
 
     permissions:
@@ -24,7 +24,7 @@ jobs:
         run: |
           echo "IMAGE_NAME=${GITHUB_REPOSITORY,,}" >> $GITHUB_ENV
 
-      - name: Login to GitHub Container Registry
+      - name: Login to GitHub Container Registry (CI)
         run: |
           echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io \
             -u "${{ github.actor }}" \
@@ -42,3 +42,41 @@ jobs:
         run: |
           docker push $REGISTRY/$IMAGE_NAME:latest
           docker push $REGISTRY/$IMAGE_NAME:${{ github.sha }}
+
+      # ---------- DEPLOY ----------
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DO_SSH_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H ${{ secrets.DO_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Deploy to VPS
+        run: |
+          ssh ${{ secrets.DO_USER }}@${{ secrets.DO_HOST }} << 'EOF'
+          set -e
+
+          IMAGE="ghcr.io/${IMAGE_NAME}:latest"
+          CONTAINER_NAME="fops"
+
+          echo "Logging into GHCR..."
+          echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io \
+            -u "${{ github.actor }}" \
+            --password-stdin
+
+          echo "Pulling new image..."
+          docker pull $IMAGE
+
+          echo "Stopping old container if exists..."
+          if docker ps -q --filter "name=$CONTAINER_NAME" | grep -q .; then
+            docker stop $CONTAINER_NAME
+            docker rm $CONTAINER_NAME
+          fi
+
+          echo "Starting new container..."
+          docker run -d \
+            --name $CONTAINER_NAME \
+            --restart unless-stopped \
+            -p 80:80 \
+            $IMAGE
+          EOF
