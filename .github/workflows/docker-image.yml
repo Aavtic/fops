@@ -58,7 +58,7 @@ jobs:
 
       - name: Deploy to VPS
         run: |
-          ssh ${{ secrets.DO_USER }}@${{ secrets.DO_HOST }} << 'EOF'
+          ssh ${{ secrets.DO_USER }}@${{ secrets.DO_HOST }} << EOF
           set -e
 
           IMAGE="ghcr.io/${IMAGE_NAME}:latest"
