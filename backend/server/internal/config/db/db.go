@@ -17,7 +17,7 @@ type DBConfig struct {
 }
 
 func LoadDBConfig() DBConfig {
-	err := godotenv.Load()
+	_ = godotenv.Load()
 
 	if _, exist := os.LookupEnv("MONGO_DATABASE"); !exist {
 		log.Fatalf("Value not present in env: %s", "MONGO_DATABASE")
@@ -43,9 +43,6 @@ func LoadDBConfig() DBConfig {
 		log.Fatalf("Value not present in env: %s", "CONNECTION_STRING")
 	}
 
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
 	database := os.Getenv("MONGO_DATABASE")
 	problems_collection := os.Getenv("PROBLEMS_COLLECTION")
 	users_collection := os.Getenv("USERS_COLLECTION")
