@@ -185,79 +185,85 @@ function RenderPass({ pass }: { pass: TestResultsPass }) {
     const average_time = pass.info.Pass.average_time;
     console.log(average_time);
 
-    const inputOutput = (title: "Input"|"Output"|"Expected", inputOutputClass: string) => { // NOTE: Added inputOutputClass as an argument
-    return (
-        <div className="bg-gray-50 p-4 rounded-lg border border-gray-400 mb-4">
-        {
-            <p className="text-base px-3 py-1 font-semibold rounded-md bg-slate-700 text-red-500 shadow-md mb-3 w-fit">
-                {title}
-            </p>
-        }
-        {
-            pass.info.Pass.Pass.map((testCase, index) => (
-                (index === currentCase) ? (
-                    // Code Block Styling (Using the passed-in class for flexibility)
-                    <code 
-                        key={index} 
-                        className={inputOutputClass + " block p-4 rounded-lg bg-gray-800 text-white font-mono whitespace-pre-wrap"}
-                    >
-                    {
-                        // Removed extra JSX braces around the content
-                        title === "Input" ? testCase.input : title === "Output" ? testCase.got : testCase.expected
-                    }
-                    </code>
-                ) : (
-                    // Use a fragment or null instead of an empty div for cleaner DOM
-                    <div key={index}></div>
-                )
-            ))
-        }
-        </div>
-    )
+    const inputOutput = (title: "Input" | "Output" | "Expected", inputOutputClass: string) => { 
+        return (
+            <div className="bg-gray-50 p-4 rounded-lg border border-gray-400 mb-4">
+                {
+                    <p className="text-base px-3 py-1 font-semibold rounded-md bg-slate-700 text-red-500 shadow-md mb-3 w-fit">
+                        {title}
+                    </p>
+                }
+                {
+                    pass.info.Pass.Pass.map((testCase, index) => (
+                        (index === currentCase) ? (
+                            <code
+                                key={index}
+                                className={inputOutputClass + " block p-4 rounded-lg bg-gray-800 text-white font-mono whitespace-pre-wrap"}
+                            >
+                                {
+                                    title === "Input" ? testCase.input : title === "Output" ? testCase.got : testCase.expected
+                                }
+                            </code>
+                        ) : (
+                            <div key={index}></div>
+                        )
+                    ))
+                }
+            </div>
+        )
     }
 
     return (
         <>
-        {
-                <>
-                <div className="py-5 px-5 flex space-x-4 overflow-x-auto pb-1 mb-4">
-                {<p className="text-2xl px-3 py-1 font-semibold rounded-full bg-green-100 text-green-800 shadow-sm mb-4 w-fit">Approved</p>}
-                <p>Execution Time: {average_time}</p>
+            <>
+                <div className="py-5 px-5 flex items-center space-x-4 overflow-x-auto pb-1 mb-4">
+                    {/* --- START OF CHANGES --- */}
+                    {/* 1. Changed <p> to <div> to allow nesting */}
+                    {/* 2. Added 'flex items-center gap-2' to align GIF and Text */}
+                    <div className="text-2xl px-4 py-1 font-semibold rounded-full bg-green-100 text-green-800 shadow-sm mb-4 w-fit flex items-center gap-2">
+                        <img 
+                            src="/success.gif" 
+                            alt="Success" 
+                            className="w-8 h-8 object-contain" 
+                        />
+                        <span>Approved</span>
+                    </div>
+                    {/* --- END OF CHANGES --- */}
+
+                    <p className="mb-4">Execution Time: {average_time}</p>
                 </div>
 
                 <div className="py-5 px-5 flex space-x-4 overflow-x-auto pb-1 mb-4">
-                    {pass.info.Pass.Pass.map((_testCase, index) => (
+                    {pass.info.Pass.Pass.map((_testCase, index) => (
 
-                        <OperationButton 
-                            key={index} 
-                            name={`Test Case ${index + 1}`} 
-                            onClickFn={() => setCurrentCase(index)} 
-                            isCurOp={currentCase === index}
-                        />
-                    ))}
+                        <OperationButton
+                            key={index}
+                            name={`Test Case ${index + 1}`}
+                            onClickFn={() => setCurrentCase(index)}
+                            isCurOp={currentCase === index}
+                        />
+                    ))}
                 </div>
-                </>
-        }
+            </>
 
-        {
-            inputOutput("Input", "text-sm") 
-        }
+            {
+                inputOutput("Input", "text-sm")
+            }
 
-        {
-            inputOutput("Output", "text-base border border-red-500")
-        }
+            {
+                inputOutput("Output", "text-base border border-red-500")
+            }
 
-        {
-            inputOutput("Expected", "text-sm")
-        }
+            {
+                inputOutput("Expected", "text-sm")
+            }
 
         </>
     )
 }
 
-
 function RenderFail(fail: TestResultsFail) {
-    const inputOutput = (title: "Input"|"Output"|"Expected", inputOutputClass: string) => { // NOTE: Added inputOutputClass as an argument
+    const inputOutput = (title: "Input"|"Output"|"Expected", inputOutputClass: string) => { 
     return (
         <div className="bg-gray-50 p-4 rounded-lg border border-gray-400 mb-4">
         {
@@ -270,7 +276,6 @@ function RenderFail(fail: TestResultsFail) {
                 className={inputOutputClass + " block p-4 rounded-lg bg-gray-800 text-white font-mono whitespace-pre-wrap"}
             >
             {
-                // Removed extra JSX braces around the content
                 title === "Input" ? fail.info.Fail.input : title === "Output" ? fail.info.Fail.got : fail.info.Fail.ex
             }
             </code>
@@ -281,29 +286,42 @@ function RenderFail(fail: TestResultsFail) {
 
     return (
         <>
-        {
-                <>
+            <>
                 <div className="py-5 px-5 flex space-x-4 overflow-x-auto pb-1 mb-4">
-                {<p className="text-2xl px-3 py-1 font-semibold rounded-full bg-red-100 text-red-800 shadow-sm mb-4 w-fit">Incorrect</p>}
+                
+                {/* --- START OF CHANGES --- */}
+                {/* 1. Changed <p> to <div> for structural correctness */}
+                {/* 2. Added 'flex items-center gap-2' to align the GIF and text */}
+                {/* 3. Added the <img> tag */}
+                <div className="text-2xl px-4 py-1 font-semibold rounded-full bg-red-100 text-red-800 shadow-sm mb-4 w-fit flex items-center gap-2">
+                    <img 
+                        src="/wrong.gif" 
+                        alt="Fail" 
+                        className="w-8 h-8 object-contain" 
+                    />
+                    <span>Incorrect</span>
                 </div>
-                </>
-        }
+                {/* --- END OF CHANGES --- */}
 
-        {
-            inputOutput("Input", "text-sm") 
-        }
+                </div>
+            </>
 
-        {
-            inputOutput("Output", "text-base border border-red-500")
-        }
+            {
+                inputOutput("Input", "text-sm") 
+            }
 
-        {
-            inputOutput("Expected", "text-sm")
-        }
+            {
+                inputOutput("Output", "text-base border border-red-500")
+            }
+
+            {
+                inputOutput("Expected", "text-sm")
+            }
 
         </>
     )
 }
+
 
 function RenderURCodeErrorLOL(error: TestResultsCodeError) {
     return (
