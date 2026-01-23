@@ -37,5 +37,5 @@ jobs:
 
       - name: Push Docker image
         run: |
-          docker push $REGISTRY/$IMAGE_NAME:latest
+          docker push aavtic/$IMAGE_NAME:latest
           docker push $REGISTRY/$IMAGE_NAME:${{ github.sha }}
