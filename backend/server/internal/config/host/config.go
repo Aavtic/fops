@@ -17,10 +17,7 @@ type (
 )
 
 func LoadHostConfig() HostConfig {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
+	_ = godotenv.Load()
 
 	if _, exist:= os.LookupEnv("HOST"); !exist {
 		log.Fatalf("Value not present in env: %s", "HOST")
