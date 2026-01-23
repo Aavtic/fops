@@ -74,5 +74,5 @@ jobs:
             
             docker pull $IMAGE
             docker rm -f $CONTAINER || true
-            sudo docker run --env-file /opt/fops/.env --network=host --publish 8080:8080 --name $CONTAINER $IMAGE
+            sudo docker run --env-file /opt/fops/.env --publish 8080:8080 --name $CONTAINER $IMAGE
           EOF
