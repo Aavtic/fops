@@ -46,10 +46,15 @@ jobs:
       # ---------- DEPLOY ----------
       - name: Setup SSH
         run: |
+          set -x
           mkdir -p ~/.ssh
           echo "${{ secrets.DO_SSH_KEY }}" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
-          ssh-keyscan -H ${{ secrets.DO_HOST }} >> ~/.ssh/known_hosts
+      
+          echo "Scanning SSH host key..."
+          ssh-keyscan -T 5 -H ${{ secrets.DO_HOST }} >> ~/.ssh/known_hosts || \
+            echo "ssh-keyscan failed, continuing anyway"
+
 
       - name: Deploy to VPS
         run: |
