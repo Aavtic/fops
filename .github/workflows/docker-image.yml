@@ -31,11 +31,11 @@ jobs:
         run: |
           docker build \
             -f backend/Dockerfile \
-            -t $REGISTRY/$IMAGE_NAME:latest \
-            -t $REGISTRY/$IMAGE_NAME:${{ github.sha }} \
+            -t aavtic/$IMAGE_NAME:latest \
+            -t aavtic/$IMAGE_NAME:${{ github.sha }} \
             backend
 
       - name: Push Docker image
         run: |
           docker push aavtic/$IMAGE_NAME:latest
-          docker push $REGISTRY/$IMAGE_NAME:${{ github.sha }}
+          docker push aavtic/$IMAGE_NAME:${{ github.sha }}
