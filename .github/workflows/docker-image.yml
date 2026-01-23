@@ -60,7 +60,7 @@ jobs:
           # Construct the full image URL using the workflow env vars
           # This ensures you are pulling exactly what you just built
           IMAGE="$REGISTRY/$IMAGE_NAME:latest"
-          CONTAINER="app"
+          CONTAINER="fops"
           
           echo "Deploying $IMAGE to remote server..."
 
