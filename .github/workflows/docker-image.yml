@@ -54,13 +54,14 @@ jobs:
           echo "Scanning SSH host key..."
           ssh-keyscan -T 5 -H ${{ secrets.DO_HOST }} >> ~/.ssh/known_hosts || \
             echo "ssh-keyscan failed, continuing anyway"
-                  
+                                    
       - name: Deploy
         run: |
           IMAGE="ghcr.io/aavtic/fops:latest"
           CONTAINER="app"
           
-          ssh user@host << EOF
+          # Updated to use secrets for User and Host
+          ssh ${{ secrets.DO_USER }}@${{ secrets.DO_HOST }} << EOF
             docker pull ${IMAGE}
             docker rm -f ${CONTAINER} || true
             docker run -d --name ${CONTAINER} ${IMAGE}
