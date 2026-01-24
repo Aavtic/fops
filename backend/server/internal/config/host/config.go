@@ -13,6 +13,7 @@ type (
 	HostConfig struct {
 		HostIP   string
 		HostPort int
+		VPSHost  string
 	}
 )
 
@@ -29,6 +30,7 @@ func LoadHostConfig() HostConfig {
 
 
   host := os.Getenv("HOST")
+	vpsHost := os.Getenv("VPS_HOST")
   port, err := strconv.ParseInt(os.Getenv("PORT"), 10, 64)
 
 	if err != nil {
@@ -38,5 +40,6 @@ func LoadHostConfig() HostConfig {
 	return HostConfig {
 		HostIP: host,
 		HostPort: int(port),
+		VPSHost: vpsHost,
 	}
 }

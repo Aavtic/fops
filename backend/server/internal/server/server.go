@@ -31,7 +31,7 @@ func (s *Server) SetupRouter(db *database.Database) *gin.Engine {
 
 	var corsConfig = cors.Config{
 			AllowOrigins: []string{
-				fmt.Sprintf("http://%s:3000", s.Config.Host.HostIP),
+				fmt.Sprintf("http://%s:3000", s.Config.Host.VPSHost),
 			},
 			AllowMethods: []string{
 					"GET", "POST", "PUT", "DELETE", "OPTIONS",
