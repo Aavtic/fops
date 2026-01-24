@@ -87,10 +87,11 @@ func CheckDocumentExists(db *Database, database, collection string, filter any) 
 func FindAllDocuments(db *Database, database, collection string, filter any, results any) error {
 	coll := db.GetCollection(database, collection)
 	cursor, err := coll.Find(context.TODO(), filter)
-	defer cursor.Close(context.Background())
 	if err != nil {
 		return err;
 	}
+
+	defer cursor.Close(context.Background())
 
 	return cursor.All(context.TODO(), results)
 }
