@@ -210,6 +210,10 @@ func (*AuthHandler) Refresh(db *database.Database) gin.HandlerFunc {
 }
 func (ah *AuthHandler) AuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		if c.Request.Method == http.MethodOptions {
+				c.AbortWithStatus(204)
+				return
+		}
 
 		var token string
 

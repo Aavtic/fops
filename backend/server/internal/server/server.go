@@ -29,11 +29,9 @@ func NewServer(cfg *config.Config) *Server {
 func (s *Server) SetupRouter(db *database.Database) *gin.Engine {
 	r := gin.Default()
 
-	fmt.Println("VSP Address: ", s.Config.Host.VPSHost)
-
 	var corsConfig = cors.Config{
-			AllowOrigins: []string{
-				fmt.Sprintf("http://%s:3000", s.Config.Host.VPSHost),
+			AllowOriginFunc: func(origin string) bool {
+				return true
 			},
 			AllowMethods: []string{
 					"GET", "POST", "PUT", "DELETE", "OPTIONS",
@@ -47,9 +45,13 @@ func (s *Server) SetupRouter(db *database.Database) *gin.Engine {
 					"Content-Length",
 			},
 			AllowCredentials: true,
-	} 
+	}
 
 	r.Use(cors.New(corsConfig))
+
+	r.OPTIONS("/*path", func(c *gin.Context) {
+			c.Status(204)
+	})
 
 	authHandler := auth_handler.NewAuthHandler(&s.Config);
 	problemHandler := problem_handler.NewProblemHandler(&s.Config)
