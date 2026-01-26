@@ -31,8 +31,8 @@ export default function UserPage({ params }: { params: Promise<{ userHash : stri
                 })
             } else if (response.status === 404 || response.status === 500 ) {
                 setUserDetails(details => ({
-                    username: "Not Found!",
                     ...details,
+                    username: "Not Found!",
                 }));
             } else if (response.status === 204) {
                 response.json().then(json => {
