@@ -35,7 +35,8 @@ export default async function LeaderboardPage() {
 
     const response = await apiFetch(GetLeaderboardEndpoint)
     if (response.status === 200) {
-        leaderboard = await response.json()
+        const data = await response.json();
+        leaderboard = Array.isArray(data) ? data : [];
     } else if (response.status === 500) {
         return <ErrorPage message={"Could not retrieve Leaderboard at this time. Please try again later"} onRetry={() => {location.reload()}}/>
     }

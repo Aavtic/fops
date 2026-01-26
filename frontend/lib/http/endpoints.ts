@@ -1,5 +1,5 @@
-const HOST: string = "localhost";
-const PORT: number = 8080
+const HOST: string = "139.59.79.106";
+const PORT: number = 8080;
 
 export const TestCodeEndpoint = `http://${HOST}:${PORT}/api/coapi/test`;
 export const AllProblemEndpoint = `http://${HOST}:${PORT}/api/db/problem`
