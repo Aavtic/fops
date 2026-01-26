@@ -100,3 +100,8 @@ func (s *Server) Run() {
 	log.Printf("Server up and running on port :%d", port)
 	r.Run(server_address)
 }
+
+// -> DB \
+// --> Backend Docker \ 
+// 										--> Nginx
+// --> Frontend Docker /
