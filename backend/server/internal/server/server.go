@@ -29,6 +29,8 @@ func NewServer(cfg *config.Config) *Server {
 func (s *Server) SetupRouter(db *database.Database) *gin.Engine {
 	r := gin.Default()
 
+	fmt.Println("VSP Address: ", s.Config.Host.VPSHost)
+
 	var corsConfig = cors.Config{
 			AllowOrigins: []string{
 				fmt.Sprintf("http://%s:3000", s.Config.Host.VPSHost),
